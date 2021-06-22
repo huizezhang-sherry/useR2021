@@ -1,0 +1,751 @@
+---
+title: "Visual Diagnostics for Constrained Optimisation with Application to Guided Tours"
+author: "H. Sherry Zhang"
+date: "6th Jul 2021"
+pdflink: ""
+endimg: 
+bgimg: 
+output:
+  xaringan::moon_reader:
+    css:
+      - ninjutsu 
+      - "assets/animate.css"
+      - "assets/monash-logo.css"
+      - "assets/monash-brand.css"
+      - "assets/monash-fonts.css"
+      - "assets/styles.css" # small improvements
+      - "assets/custom.css" # add your own CSS here!
+    self_contained: false 
+    seal: false 
+    chakra: 'libs/remark-latest.min.js'
+    lib_dir: libs
+    includes:
+      in_header: "assets/custom.html"
+    mathjax: "assets/mathjax-local/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+    nature:
+      highlightStyle: github 
+      highlightLanguage: r 
+      highlightLines: true
+      highlightSpans: false 
+      countIncrementalSlides: false
+      slideNumberFormat: |
+        <div class="progress-bar-container">
+          <div class="progress-bar" style="width: calc(%current% / %total% * 100%);">
+          </div>
+        </div>
+      navigation:
+        scroll: false 
+        touch: true
+        click: false
+      ratio: '16:9'
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, cache = TRUE, fig.retina = 2)
+library(ferrn)
+library(tidyverse)
+library(icon)
+library(patchwork)
+library(tourr)
+files <- paste0("data/", list.files(here::here("data")))
+purrr::walk(.x = files, ~load(here::here(.x), env = globalenv()))
+```
+
+```{r titleslide, child="components/titleslide.Rmd"}
+```
+
+
+---
+
+# Motivation
+
+> The work also reveals inadequacies in the tour optimization algorithm, that may benefit from newly developed techniques and software tools. Exploring this area would help improve the guided tours. As new optimization techniques become available, adapting these to the guided tour would extend the technique to a broader range of problems. (Laa & Cook, 2020)
+
+- For simulated data, the optimisers
+  - often failed at finding the expected maxima, or 
+  - would only get close but not reach the maxima
+- For noisy index functions it failed completely
+
+
+???
+
+- project, motivated by ursula and Di's work, that apply pp to physics. 
+- this is what they write in the paper
+
+---
+
+# How to solve this problem?
+
+To understand where the optimisers were failing, ideally we need to visualise the **space** and the **paths** that the optimisers take through the space. 
+  
+--
+
+  - the space is the set of all d-dimensional projections of p-dimensional space.
+
+???
+
+intro: 
+
+- This is an interesting visualisation problem because
+- I'm going to talk about this today 
+- Before I do that, I will give an overview of my research plan
+  
+---
+
+# What is projection pursuit and guided tour?
+
+
+- Data: $\mathbf{X}_{n \times p}$; Basis: $\mathbf{A}_{p\times d}$
+- Projection: $\mathbf{Y} = \mathbf{X} \cdot \mathbf{A}$
+- Index function: $f: \mathbb{R}^{n \times d} \mapsto \mathbb{R}$ 
+- Optimisation: $\arg \max_{\mathbf{A} \in \mathcal{A}} f(\mathbf{X} \cdot \mathbf{A})  ~~~ s.t. ~~~ \mathbf{A}^{\prime} \mathbf{A} = I_d$
+
+```{r echo = FALSE, fig.align="center"}
+knitr::include_graphics("./img/tour-path.png")
+```
+
+
+???
+Here are some background knowledge
+- Projection basis which gives a d-dimensional projection; characterise, the direction from which the data get projected; 
+- Index function: maps the projection to a scalar, 
+  - measures interestingness, theoretical results show that, depart from normal distribution, intuitive explanation, CLT, more observations,  data distributed as normal
+- Optimisation: max the index, subject to orthonormality constraint
+
+<br> </br>
+The following illustration shows how projection pursuit and guided tour works together to produce a tour path
+- blue frames are from projection pursuit optimisation, since iterative algo
+- guided tour interpolates between the accepted frames to form a smooth tour path that can be watched like a movie
+
+<br> </br>
+later I will show a tour animation of 1D projection
+
+
+---
+# Three optimisers
+
+- Creeping random search (CRS):
+  - randomly sample a basis and evaluate its index value
+  - accept the basis if higher, discard if lower
+- Simulated annealing (SA):
+  - a second chance for acceptance with probability
+  $$P= \min\left\{\exp\left[-\frac{\mid I_{\text{cur}} - I_{l} \mid}{T(l)}\right],1\right\}$$
+  <small> where $I_{(\cdot)}$ is the index value, $T(l) = \frac{T_0}{\log(l + 1)}$, $l$ is the # of eval in the current iter. </small>
+  - as $l$ increases, $T(l)$ decreases, and the probability for accepting inferior bases decreases
+
+  
+???
+
+Three optimisers:  all random search algorithms
+
+creeping random search: 
+  - sample, satisfy orthonormality, evaluate
+  - candidate, accept
+
+simulated annealing:
+  - follow the same, sampling, accepting, better
+  - different design for bases that are worse than the current, namely, it gives
+  
+---
+# Three optimisers 
+(Cont.)
+
+- Pseudo derivative (PD): 
+  - randomly sample 5 directions close to the current and pick the most promising one
+  - search along a straight line (on the sphere) for the best candidate
+  - accept the basis if higher, discard if lower
+  
+???
+
+Pseudo derivative:
+  - flavour, gradient a'scent, first promising direction, compute a step size
+  - doesn't use derivatives, hard to operate on a basis
+
+---
+# Data
+
+```{r eval = FALSE}
+set.seed(123456)
+render_gif(boa5,
+           tour_path = guided_tour(holes(), d = 1, 
+                                   search_f = search_geodesic),
+            display_dist(),
+           frames = 45,
+           rescale = FALSE,
+           gif_file = here::here("img", "tour-demo.gif"))
+
+```
+
+.pull-left[
+```{r}
+knitr::include_graphics("./img/tour-demo.gif")
+```
+
+]
+.pull-right[
+
+- 1D projection: histogram
+- $x_2$ is informative: $0.5 \mathcal{N}(-3, 1) + 0.5 \mathcal{N}(3, 1)$, others are random normal
+- We expect: 
+  - $x_2$ has weight close to 1, and 
+  - others close to 0
+]
+
+
+???
+
+Here is the animation I promised earlier
+
+- This is a tour animation of 1D projection, because it is 1D, the projection is a histogram
+- Among the 5 variables, X2 is a gaussian mixture and others are random normal
+- We expect: X2 to have a weight close to 1 and others close to 0
+
+<br> </br>
+
+- In this simple example, the optimiser works well to find the optimum
+- but this is not the case in all the problem, as we see in the literature
+- so we need some visual tools to help us diagnose where the things go wrong
+
+---
+# Toolbox: search plot
+
+.pull-left[
+```{r, message=FALSE}
+holes_1d_better %>% 
+  explore_trace_search(extend_lower = 0.99) + 
+  scale_color_continuous_botanical() + 
+  theme_bw() + theme(legend.position = "none")
+```
+
+]
+
+.pull-right[
+
+- how many searches in each iteration
+- what is the index value of the best basis and how much it improves
+]
+
+???
+
+Here are the different diagnostic plots that I created
+
+- How many different searches have been conducted
+
+---
+# Toolbox: trace plot
+
+.pull-left[
+```{r, message=FALSE}
+before %>%
+  explore_trace_interp(accuracy_y = 0.001, cutoff = 100, interp_size = 2, target_size = 5) +
+  scale_color_continuous_botanical() 
+```
+
+]
+
+.pull-right[
+- what's the index value of the interpolating bases
+- index first increases and then decreases in the 3rd & 4th iteration!
+
+]
+
+???
+
+- Trace plot, showing the index values of the interpolating bases, white frames
+- we see smooth interpolation here, different curvatures, specifically
+
+- This shows a problem in the tour algorithm and I will come back to this plot later
+
+---
+# Toolbox: reduced-space plot
+
+.pull-left[
+```{r}
+pca_plot <- bind_rows(holes_1d_geo, holes_1d_better) %>%
+  bind_theoretical(matrix(c(0, 1, 0, 0, 0), nrow = 5),
+                   index = tourr::holes(), raw_data = boa5)  %>%
+  explore_space_pca(group = method, details = TRUE,
+                    interp_size = 1, ratio = 3) +
+  scale_color_discrete_botanical()
+pca_plot
+```
+]
+
+
+???
+
+And then we have reduced-space plot - First tell you how this plot is made and then what we can learn from it
+
+- We have all the bases  evaluated in the optimisation - these are the coloured dots 
+- we also have random bases sampled from the space, that is used to draw the circle 
+- we then perform PCA on all these basis and take the first two to create this plot 
+
+In this plot 
+- The star is the theoretical best basis, corresponds to 1 in $x_2$ and 0 in others
+- we have two paths, CRS is coloured as brown and PD as green
+- the start and end of the path is annotated as larger dots
+- CRS evaluates random points in the space so you can see dots here and there
+- PD evaluates 5 directions locally, so you can see dots scattered around an accepted basis
+- The paths are interpolating paths in the space
+- dashed lines are related to the increase-then-decrease interpolation we saw earlier and I will explain it later. 
+
+What we learn: 
+
+- I create it to compare paths from different optimisers and to examine its coverage of the space
+
+--
+
+.pull-right[
+
+- Both optimisers find the optimum but PD gets closer
+- Visually understand how the optimisers work 
+
+]
+
+--
+
+.pull-right[
+
+```{r eval = FALSE}
+dt <- dplyr::bind_rows(holes_1d_geo, holes_1d_better) %>%
+  bind_theoretical(matrix(c(0, 1, 0, 0, 0), nrow = 5),
+                   index = tourr::holes(), raw_data = boa5)
+ani <- dt %>%
+  explore_space_pca(group = method, animate = TRUE, interp_size = 3,
+                    theo_size = 45, start_size = 10, end_size = 20) +
+  theme(legend.position = "none") +
+  scale_color_discrete_botanical(palette = "fern")
+gganimate::anim_save(ani, filename = here::here("img", "pca.gif"))
+
+```
+
+
+```{r out.width="70%", fig.align="center"}
+knitr::include_graphics("./img/pca.gif") 
+```
+
+]
+
+???
+
+
+we can also make an animated version of this plot 
+  - see where each optimiser starts clearer
+  - an additional info, learn 
+
+--
+
+.pull-right[
+
+CRS finds it faster!
+
+]
+
+---
+# Toolbox: space plot
+
+.pull-left[
+
+```{r eval = FALSE}
+prep <- prep_space_tour(dplyr::bind_rows(holes_1d_better, holes_1d_geo), 
+                        flip = TRUE, group = method, 
+                        palette = botanical_palettes$fern[c(1,6)], 
+                        axes = "bottomleft",
+                        point_size = 2, end_size = 5)
+
+set.seed(123456)
+render(
+  prep$basis,
+  tour_path = grand_tour(),
+  dev = "png",
+  display = display_xy(col = prep$col, cex = prep$cex, pch = prep$pch,
+                       edges = prep$edges, edges.col = prep$edges_col,
+                       axes = "bottomleft"),
+  rescale = FALSE,
+  frames = 100,
+  here::here("img","tour", "tour-frame%03d.png")
+)
+
+
+# render gif
+set.seed(123456)
+render_gif(
+  prep$basis,
+  tour_path = grand_tour(),
+  display = display_xy(col = prep$col, cex = prep$cex, pch = prep$pch,
+                       edges = prep$edges, edges.col = prep$edges_col,
+                       axes = "bottomleft"),
+  rescale = FALSE,
+  frames = 200,
+  gif_file = here::here("img","tour.gif")
+)
+```
+
+
+```{r}
+knitr::include_graphics("./img/tour.gif") 
+```
+
+]
+
+???
+
+What I'm showing you now is the same two paths but on the full space. 
+  - The basis space is a 5D unit sphere since the square of all the entries adds up to one
+  - this can be simulated with `geozoo` package.
+  - find a frame that is most similar to the previous PCA view
+
+This is what I find
+  - CRS almost identical, PD misses a tail
+  - see animation again, hide behind
+Learn: 
+  - PCA, maximises variance, most spread, full space plot, other twisted view
+
+
+--
+
+
+.pull-right[
+
+```{r out.width="110%", out.height="120%"}
+p1 <- knitr::include_graphics("./img/tour/tour-frame078.png") %>% png::readPNG() %>% grid::rasterGrob() %>% wrap_plots()
+p1 / pca_plot
+```
+
+]
+
+
+
+---
+# Toolbox: space plot for 2D bases
+
+2D basis space is no longer a sphere!
+
+???
+
+intro:
+- generate random 2D bases, animate with tour
+- guess what shape is it
+
+body:
+- six frames
+- torus, two circles, frame 4, frame 5 
+- each axis forms a circle, sum of square adds to 1, orthogonal, product of two circles as a torus
+- need to make sure I'm correct: this is a 3D flat torus since we have three variables and the torus is defined by three pairs of `sin` and `cos`
+- we can also embed the 2D path into the torus
+
+--
+
+.pull-left[
+```{r eval = FALSE}
+proj_d <-  2 # 2D because then you have 2 orthogonal circles
+d <- 6
+n_point <- 5000
+set.seed(123456)
+random <- map(1:n_point, ~basis_random(n = d/proj_d,  d=proj_d)) %>%
+  purrr::flatten_dbl() %>% matrix(ncol = d, byrow = TRUE) %>% as_tibble()
+
+set.seed(123)
+render(
+  random[,1:d],
+  tour_path = grand_tour(),
+  dev = "png",
+  display = display_xy(axes = "off", col = "grey60", cex = 0.5),
+  rescale = FALSE,
+  frames = 100,
+  here::here("img","torus", "torus%03d.png")
+)
+
+# render gif
+set.seed(123)
+render_gif(
+  random[,1:d],
+  tour_path = grand_tour(),
+  display = display_xy(axes = "off", col = "grey60", cex = 0.5),
+  rescale = FALSE,
+  frames = 100,
+  gif_file = here::here("img","torus.gif")
+)
+```
+
+```{r out.width = "100%"}
+knitr::include_graphics("./img/torus.gif")
+```
+
+]
+
+
+--
+.pull-right[
+```{r out.width = "100%"}
+frames <- c("001", "017", "064", "068", "075", "100")
+ani <- paste0("./img/", "torus/", "torus", frames, ".png")
+rl <- lapply(ani, png::readPNG)
+gl <-  lapply(rl, grid::rasterGrob)
+wrap_plots(gl)
+```
+
+]
+
+---
+class: middle transition
+
+## Improvement made based on the diagnostics
+
+???
+
+- What I have just shown, are the tools that we have, to diagnose the projection pursuit optimisers
+- Now I'm going to show you 
+  - what I find with these tools, and 
+  - how I improve the optimisation in projection pursuit guided tour
+
+---
+
+# Improvement: interruption
+
+- Interruption: start the next round at the basis with the highest index value in the interpolation
+
+```{r fig.align="center", fig.width=13}
+interp <- before %>% get_interp()
+
+p1_anno <- bind_rows(
+  interp %>% filter(tries == 4, info == "interpolation") %>%
+    filter(index_val == max(index_val)) %>%
+    mutate(anno = "interpolation basis"),
+  interp %>% get_interp_last %>% filter(tries %in% c(3, 4)) %>%
+    mutate(anno = c("current basis", "target basis"))
+) %>% arrange(id)
+
+p1 <- before %>%
+  explore_trace_interp(accuracy_y = 0.001) +
+  scale_color_continuous_botanical() +
+  geom_hline(data = get_best(after) %>% mutate(id = 78), aes(yintercept = index_val), color = "grey90") +
+  ggrepel::geom_label_repel(data = p1_anno, aes(label = anno), box.padding = 0.5, alpha = 0.5) +
+  ggtitle("without interruption")
+
+p2 <- after %>%
+  explore_trace_interp(accuracy_y = 0.001) +
+
+  ggtitle("with interruption") +
+  scale_color_continuous_botanical()
+
+(p1 | p2)
+```
+
+
+???
+
+- We have seen the plot on the left previously, there is room for improvement here because  
+- we indeed find basis with higher index value on the interpolation path
+- But we end up with a worse target basis
+
+- What I do is to implement an interruption, which will stop the interpolation at the highest and start the next round with that basis. 
+
+- On the right is what we have after this implementation
+
+---
+
+# Improvement: polish
+
+```{r eval = FALSE, messages = FALSE}
+set.seed(123456)
+render(
+  boa6,
+  tour_path = guided_tour(holes(), d = 2, search_f = search_better, max.tries = 400),
+  dev = "png",
+  display = display_xy(axes = "off", verbose = TRUE, col = botanical_palettes$fern[[1]]),
+  rescale = FALSE,
+  frames = 500,
+  file = here::here("img","polish", "before%03d.png")
+)
+
+last_basis <- get_best(holes_2d_better)$basis %>% .[[1]]
+
+set.seed(123456)
+render(
+  boa6,
+  tour_path =  guided_tour(holes(), d = 2, search_f = search_polish),
+  dev = "png",
+  display = display_xy(axes = "off", verbose = TRUE, col = botanical_palettes$fern[[6]]),
+  start = last_basis,
+  rescale = FALSE,
+  frames = 100,
+  file = here::here("img","polish", "after%03d.png")
+)
+```
+
+.left-col[
+```{r fig.width=10, message = FALSE}
+best <- get_best(holes_2d_better_polish) %>% pull(index_val)
+dt <- bind_rows(holes_2d_better, holes_2d_better_polish) 
+interp_last <- bind_rows(get_start(dt), get_interp_last(dt, group = method))  
+tick_y <- format_label(interp_last$index_val, accuracy = 0.01) %>% round(3)
+
+bind_rows(holes_2d_better, holes_2d_better_polish) %>%
+  clean_method() %>%
+  mutate(method = factor(method, levels = c("CRS", "polish"))) %>%
+  get_interp() %>%
+  explore_trace_interp(color = method, cutoff = 100, target_size = 4, interp_size = 2) +
+  scale_color_discrete_botanical(breaks = c("CRS", "polish"), label = c("CRS", "polish")) +
+  geom_hline(yintercept = best, color = "black", linetype = "dashed") + 
+  scale_y_continuous(breaks = tick_y) + 
+  theme(legend.position = "bottom",
+        plot.margin = margin(2.5, 2, 0, 0, "cm"))
+
+```
+
+]
+
+.right-col[
+```{r, fig.width=5}
+before <- png::readPNG("./img/polish/before073.png")
+after <- png::readPNG("./img/polish/after006.png")
+
+wrap_plots(grid::rasterGrob(after)) /wrap_plots(grid::rasterGrob(before))
+```
+
+]
+
+???
+
+What I'm showing here is the trace plot and final projection of a 2D problem, optimised by creeping random search
+
+- the optimiser finds the clusters, but the edges of the clusters are not clear
+- we want to improve this and hence create a polish search
+- In polish search, you sample a set of bases within a tiny neighbourhood parameter and see if there is any local breakthrough
+
+The green path and image show the index value and  projection after polishing and we can observe much clearer edges, especially along the verticle axis.
+
+
+---
+# Case study: optimising a noisy index
+
+.pull-left[
+### Which optimiser(s) work and which didn't?
+
+<br>
+
+New index: $$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$ 
+
+<small> where $F_{.}(n)$ is the ECDF function </small>
+
+]
+
+--
+
+.pull-right[
+
+```{r fig.align="center", message=FALSE, warning = FALSE}
+index <- tourr::norm_kol(nrow(boa5))
+theo_best_index_val <- index(as.matrix(boa5) %*% matrix(c(0, 1, 0, 0, 0), nrow = 5, ncol = 1))
+
+dt <- dplyr::bind_rows(kol_1d_geo, kol_1d_better, kol_1d_better_random) %>%
+  bind_theoretical(matrix = matrix(c(0, 1, 0, 0, 0), ncol = 1), tourr::norm_kol(nrow(boa5)), raw_data = boa5)
+
+p1 <- dt %>%
+  explore_trace_interp(group = method, color = method, accuracy_y = 0.02) +
+  geom_hline(yintercept = theo_best_index_val, alpha = 0.5, linetype = 2) +
+  scale_color_discrete_botanical() +
+  facet_wrap(vars(fct_relevel(method, c("PD", "CRS", "SA"))), scales = "free_x")
+
+pca <- dt %>%
+  compute_pca(group = method) %>%
+  purrr::pluck("aug")
+
+p2 <- pca %>%
+  explore_space_pca(group = method, pca = FALSE, details = FALSE, start_size = 3, interp_size = 0.5, end_size = 5) +
+  add_search(dt = pca %>% group_by(method) %>% filter(str_detect(info, "search")) %>% filter(tries != max(tries)),
+             search_size = 0.5, search_col = method, search_alpha = 0.2) +
+  add_dir_search(dt = pca %>% filter(method == "PD") %>% get_dir_search(ratio = 10) %>% filter(tries != max(tries)),
+                 dir_col = method, dir_alpha = 0.2) +
+  scale_color_discrete_botanical() +
+  theme(legend.position = "none") +
+  facet_wrap(vars(fct_relevel(method, c("PD", "CRS", "SA"))))
+
+(p1 / p2)
+```
+]
+
+???
+
+
+
+
+---
+# Case study: optimising a noisy index
+
+### What happen if there is local maximum?
+
+--
+
+.pull-left[
+
+```{r}
+clean_pca <- clean %>%
+  filter(method != "search_polish") %>%
+  bind_theoretical(matrix = matrix(c(0, 1, 0, 0, 0, 0), nrow = 6),
+                   index = tourr::norm_kol(nrow(boa6)),
+                   raw_data = boa6) %>%
+  bind_theoretical(matrix = matrix(c(0, 0, 1, 0, 0, 0), nrow = 6),
+                   index = tourr::norm_kol(nrow(boa6)),
+                   raw_data = boa6) %>%
+  mutate(seed_sim = paste0(seed, sim),
+         alpha = ifelse(str_detect(sim, "tuned"), 0.7, 0.5),
+         optimiser = ifelse(str_detect(sim, "random"), "SA", "CRS"),
+         var_found = as.factor(ifelse(var_found == "V7", "global", "local")),
+         var_found = fct_relevel(var_found, "global", after = 1)) %>%
+  compute_pca(group = seed_sim) %>%
+  pluck("aug")
+
+global_max <- clean_pca %>%
+  filter(info == "theoretical") %>%
+  filter(index_val == max(index_val)) %>%
+  select(-alpha, -optimiser)
+
+local_max <- clean_pca %>%
+  filter(info == "theoretical") %>%
+  filter(index_val == min(index_val)) %>%
+  select(-alpha, -optimiser)
+
+clean_pca %>% drop_na() %>% rename(`search size` = alpha) %>%
+  explore_space_pca(pca = FALSE, group = seed_sim, color = var_found,
+                    start_size = 1, start_alpha = 0.5, end_size = 2,
+                    interp_size = 0.5) +
+  add_theo(dt = global_max, theo_size = 20) +
+  add_theo(dt = local_max, theo_label = "x", theo_size = 10) +
+  scale_color_discrete_botanical() +
+  facet_grid(`search size` ~ optimiser, labeller = label_both)
+
+```
+
+]
+
+--
+
+.pull-right[
+- [CRS & 0.5] is fast and simple
+]
+
+--
+
+.pull-right[
+- with a larger search size of 0.7, more find the global max
+<br>
+]
+
+--
+
+.pull-right[
+- small search size: 0.5 hinders SA to find the global max
+]
+
+--
+
+.pull-right[
+- [SA & 0.7] finds the global max in 16 out of 20 simulations and gets closer
+
+]
+
+---
+
+```{r endslide, child="components/endslide.Rmd"}
+```

@@ -1,0 +1,42 @@
+background-image: url(`r rmarkdown::metadata$endimg`)
+background-size: cover
+class: hide-slide-number split-70
+count: false
+
+.column.shade_black[.content[
+
+<small>*Slides produced using [Rmarkdown](https://github.com/rstudio/rmarkdown) with [xaringan](https://github.com/yihui/xaringan) styling available at <i class="fa fa-github"></i> [huizezhang-sherry/useR2021](https://github.com/huizezhang-sherry/useR2021)*</small>
+
+<br><br>
+
+<p style = "font-size: 60px"> Questions? </p>
+
+.bottom_abs.width100[
+
+## `r rmarkdown::metadata$author`
+
+<i class="fa fa-twitter"></i> [huizezhangsh](https://twitter.com/huizezhangsh)
+<i class="fa fa-link"></i> https://huizezhangsh.netlify.com/
+
+
+Supervised by Dianne Cook, Patricia Menéndez, Nicolas Langrené, and Ursula Laa
+
+
+]
+
+
+]]
+
+
+
+<div class="column transition monash-m-new delay-1s" style="clip-path:url(#swipe__clip-path);">
+<div class="background-image" style="background-image:url('img/large.png');background-position: center;background-size:cover;margin-left:3px;">
+<svg class="clip-svg absolute">
+<defs>
+<clipPath id="swipe__clip-path" clipPathUnits="objectBoundingBox">
+<polygon points="0.5745 0, 0.5 0.33, 0.42 0, 0 0, 0 1, 0.27 1, 0.27 0.59, 0.37 1, 0.634 1, 0.736 0.59, 0.736 1, 1 1, 1 0, 0.5745 0" />
+</clipPath>
+</defs>	
+</svg>
+</div>
+</div>

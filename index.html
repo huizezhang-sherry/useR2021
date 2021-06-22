@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Visual Diagnostics for Constrained Optimisation with Application to Guided Tours</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="H. Sherry Zhang" />
+    <script src="libs/header-attrs-2.8.6/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/ninjutsu.css" rel="stylesheet" />
+    <!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
+    -->
+    <link rel="icon" href="images/favicon.ico"  type='image/x-icon'/>    
+    <link rel="stylesheet" href="assets/animate.css" type="text/css" />
+    <link rel="stylesheet" href="assets/monash-logo.css" type="text/css" />
+    <link rel="stylesheet" href="assets/monash-brand.css" type="text/css" />
+    <link rel="stylesheet" href="assets/monash-fonts.css" type="text/css" />
+    <link rel="stylesheet" href="assets/styles.css" type="text/css" />
+    <link rel="stylesheet" href="assets/custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+
+
+
+
+background-image: url() 
+background-size: cover
+class: hide-slide-number split-70 title-slide
+count: false
+
+.column.shade_black[.content[
+
+&lt;br&gt;
+
+# .monash-blue.outline-text[Visual Diagnostics for Constrained Optimisation with Application to Guided Tours]
+
+&lt;br&gt;
+
+.bottom_abs.width100[
+
+## H. Sherry Zhang
+
+
+Supervised by Dianne Cook, Patricia Menéndez, Nicolas Langrené, and Ursula Laa
+
+6th Jul 2021
+
+&lt;i class="fa fa-link"&gt;&lt;/i&gt;: https://sherry-confirmation.netlify.app
+&lt;br&gt;
+]
+
+
+]]
+
+
+
+&lt;div class="column transition monash-m-new delay-1s" style="clip-path:url(#swipe__clip-path);"&gt;
+&lt;div class="background-image" style="background-image:url('img/large.png');background-position: center;background-size:cover;margin-left:3px;"&gt;
+&lt;svg class="clip-svg absolute"&gt;
+&lt;defs&gt;
+&lt;clipPath id="swipe__clip-path" clipPathUnits="objectBoundingBox"&gt;
+&lt;polygon points="0.5745 0, 0.5 0.33, 0.42 0, 0 0, 0 1, 0.27 1, 0.27 0.59, 0.37 1, 0.634 1, 0.736 0.59, 0.736 1, 1 1, 1 0, 0.5745 0" /&gt;
+&lt;/clipPath&gt;
+&lt;/defs&gt;	
+&lt;/svg&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+---
+
+# Motivation
+
+&gt; The work also reveals inadequacies in the tour optimization algorithm, that may benefit from newly developed techniques and software tools. Exploring this area would help improve the guided tours. As new optimization techniques become available, adapting these to the guided tour would extend the technique to a broader range of problems. (Laa &amp; Cook, 2020)
+
+- For simulated data, the optimisers
+  - often failed at finding the expected maxima, or 
+  - would only get close but not reach the maxima
+- For noisy index functions it failed completely
+
+
+???
+
+- project, motivated by ursula and Di's work, that apply pp to physics. 
+- this is what they write in the paper
+
+---
+
+# How to solve this problem?
+
+To understand where the optimisers were failing, ideally we need to visualise the **space** and the **paths** that the optimisers take through the space. 
+  
+--
+
+  - the space is the set of all d-dimensional projections of p-dimensional space.
+
+???
+
+intro: 
+
+- This is an interesting visualisation problem because
+- I'm going to talk about this today 
+- Before I do that, I will give an overview of my research plan
+  
+---
+
+# What is projection pursuit and guided tour?
+
+
+- Data: `\(\mathbf{X}_{n \times p}\)`; Basis: `\(\mathbf{A}_{p\times d}\)`
+- Projection: `\(\mathbf{Y} = \mathbf{X} \cdot \mathbf{A}\)`
+- Index function: `\(f: \mathbb{R}^{n \times d} \mapsto \mathbb{R}\)` 
+- Optimisation: `\(\arg \max_{\mathbf{A} \in \mathcal{A}} f(\mathbf{X} \cdot \mathbf{A})  ~~~ s.t. ~~~ \mathbf{A}^{\prime} \mathbf{A} = I_d\)`
+
+&lt;img src="./img/tour-path.png" width="592" style="display: block; margin: auto;" /&gt;
+
+
+???
+Here are some background knowledge
+- Projection basis which gives a d-dimensional projection; characterise, the direction from which the data get projected; 
+- Index function: maps the projection to a scalar, 
+  - measures interestingness, theoretical results show that, depart from normal distribution, intuitive explanation, CLT, more observations,  data distributed as normal
+- Optimisation: max the index, subject to orthonormality constraint
+
+&lt;br&gt; &lt;/br&gt;
+The following illustration shows how projection pursuit and guided tour works together to produce a tour path
+- blue frames are from projection pursuit optimisation, since iterative algo
+- guided tour interpolates between the accepted frames to form a smooth tour path that can be watched like a movie
+
+&lt;br&gt; &lt;/br&gt;
+later I will show a tour animation of 1D projection
+
+
+---
+# Three optimisers
+
+- Creeping random search (CRS):
+  - randomly sample a basis and evaluate its index value
+  - accept the basis if higher, discard if lower
+- Simulated annealing (SA):
+  - a second chance for acceptance with probability
+  `$$P= \min\left\{\exp\left[-\frac{\mid I_{\text{cur}} - I_{l} \mid}{T(l)}\right],1\right\}$$`
+  &lt;small&gt; where `\(I_{(\cdot)}\)` is the index value, `\(T(l) = \frac{T_0}{\log(l + 1)}\)`, `\(l\)` is the # of eval in the current iter. &lt;/small&gt;
+  - as `\(l\)` increases, `\(T(l)\)` decreases, and the probability for accepting inferior bases decreases
+
+  
+???
+
+Three optimisers:  all random search algorithms
+
+creeping random search: 
+  - sample, satisfy orthonormality, evaluate
+  - candidate, accept
+
+simulated annealing:
+  - follow the same, sampling, accepting, better
+  - different design for bases that are worse than the current, namely, it gives
+  
+---
+# Three optimisers 
+(Cont.)
+
+- Pseudo derivative (PD): 
+  - randomly sample 5 directions close to the current and pick the most promising one
+  - search along a straight line (on the sphere) for the best candidate
+  - accept the basis if higher, discard if lower
+  
+???
+
+Pseudo derivative:
+  - flavour, gradient a'scent, first promising direction, compute a step size
+  - doesn't use derivatives, hard to operate on a basis
+
+---
+# Data
+
+
+
+.pull-left[
+![](./img/tour-demo.gif)&lt;!-- --&gt;
+
+]
+.pull-right[
+
+- 1D projection: histogram
+- `\(x_2\)` is informative: `\(0.5 \mathcal{N}(-3, 1) + 0.5 \mathcal{N}(3, 1)\)`, others are random normal
+- We expect: 
+  - `\(x_2\)` has weight close to 1, and 
+  - others close to 0
+]
+
+
+???
+
+Here is the animation I promised earlier
+
+- This is a tour animation of 1D projection, because it is 1D, the projection is a histogram
+- Among the 5 variables, X2 is a gaussian mixture and others are random normal
+- We expect: X2 to have a weight close to 1 and others close to 0
+
+&lt;br&gt; &lt;/br&gt;
+
+- In this simple example, the optimiser works well to find the optimum
+- but this is not the case in all the problem, as we see in the literature
+- so we need some visual tools to help us diagnose where the things go wrong
+
+---
+# Toolbox: search plot
+
+.pull-left[
+&lt;img src="index_files/figure-html/unnamed-chunk-4-1.png" width="504" /&gt;
+
+]
+
+.pull-right[
+
+- how many searches in each iteration
+- what is the index value of the best basis and how much it improves
+]
+
+???
+
+Here are the different diagnostic plots that I created
+
+- How many different searches have been conducted
+
+---
+# Toolbox: trace plot
+
+.pull-left[
+&lt;img src="index_files/figure-html/unnamed-chunk-5-1.png" width="504" /&gt;
+
+]
+
+.pull-right[
+- what's the index value of the interpolating bases
+- index first increases and then decreases in the 3rd &amp; 4th iteration!
+
+]
+
+???
+
+- Trace plot, showing the index values of the interpolating bases, white frames
+- we see smooth interpolation here, different curvatures, specifically
+
+- This shows a problem in the tour algorithm and I will come back to this plot later
+
+---
+# Toolbox: reduced-space plot
+
+.pull-left[
+&lt;img src="index_files/figure-html/unnamed-chunk-6-1.png" width="504" /&gt;
+]
+
+
+???
+
+And then we have reduced-space plot - First tell you how this plot is made and then what we can learn from it
+
+- We have all the bases  evaluated in the optimisation - these are the coloured dots 
+- we also have random bases sampled from the space, that is used to draw the circle 
+- we then perform PCA on all these basis and take the first two to create this plot 
+
+In this plot 
+- The star is the theoretical best basis, corresponds to 1 in `\(x_2\)` and 0 in others
+- we have two paths, CRS is coloured as brown and PD as green
+- the start and end of the path is annotated as larger dots
+- CRS evaluates random points in the space so you can see dots here and there
+- PD evaluates 5 directions locally, so you can see dots scattered around an accepted basis
+- The paths are interpolating paths in the space
+- dashed lines are related to the increase-then-decrease interpolation we saw earlier and I will explain it later. 
+
+What we learn: 
+
+- I create it to compare paths from different optimisers and to examine its coverage of the space
+
+--
+
+.pull-right[
+
+- Both optimisers find the optimum but PD gets closer
+- Visually understand how the optimisers work 
+
+]
+
+--
+
+.pull-right[
+
+
+
+
+&lt;img src="./img/pca.gif" width="70%" style="display: block; margin: auto;" /&gt;
+
+]
+
+???
+
+
+we can also make an animated version of this plot 
+  - see where each optimiser starts clearer
+  - an additional info, learn 
+
+--
+
+.pull-right[
+
+CRS finds it faster!
+
+]
+
+---
+# Toolbox: space plot
+
+.pull-left[
+
+
+
+
+![](./img/tour.gif)&lt;!-- --&gt;
+
+]
+
+???
+
+What I'm showing you now is the same two paths but on the full space. 
+  - The basis space is a 5D unit sphere since the square of all the entries adds up to one
+  - this can be simulated with `geozoo` package.
+  - find a frame that is most similar to the previous PCA view
+
+This is what I find
+  - CRS almost identical, PD misses a tail
+  - see animation again, hide behind
+Learn: 
+  - PCA, maximises variance, most spread, full space plot, other twisted view
+
+
+--
+
+
+.pull-right[
+
+&lt;img src="index_files/figure-html/unnamed-chunk-11-1.png" width="110%" height="120%" /&gt;
+
+]
+
+
+
+---
+# Toolbox: space plot for 2D bases
+
+2D basis space is no longer a sphere!
+
+???
+
+intro:
+- generate random 2D bases, animate with tour
+- guess what shape is it
+
+body:
+- six frames
+- torus, two circles, frame 4, frame 5 
+- each axis forms a circle, sum of square adds to 1, orthogonal, product of two circles as a torus
+- need to make sure I'm correct: this is a 3D flat torus since we have three variables and the torus is defined by three pairs of `sin` and `cos`
+- we can also embed the 2D path into the torus
+
+--
+
+.pull-left[
+
+
+&lt;img src="./img/torus.gif" width="100%" /&gt;
+
+]
+
+
+--
+.pull-right[
+&lt;img src="index_files/figure-html/unnamed-chunk-14-1.png" width="100%" /&gt;
+
+]
+
+---
+class: middle transition
+
+## Improvement made based on the diagnostics
+
+???
+
+- What I have just shown, are the tools that we have, to diagnose the projection pursuit optimisers
+- Now I'm going to show you 
+  - what I find with these tools, and 
+  - how I improve the optimisation in projection pursuit guided tour
+
+---
+
+# Improvement: interruption
+
+- Interruption: start the next round at the basis with the highest index value in the interpolation
+
+&lt;img src="index_files/figure-html/unnamed-chunk-15-1.png" width="936" style="display: block; margin: auto;" /&gt;
+
+
+???
+
+- We have seen the plot on the left previously, there is room for improvement here because  
+- we indeed find basis with higher index value on the interpolation path
+- But we end up with a worse target basis
+
+- What I do is to implement an interruption, which will stop the interpolation at the highest and start the next round with that basis. 
+
+- On the right is what we have after this implementation
+
+---
+
+# Improvement: polish
+
+
+
+.left-col[
+&lt;img src="index_files/figure-html/unnamed-chunk-17-1.png" width="720" /&gt;
+
+]
+
+.right-col[
+&lt;img src="index_files/figure-html/unnamed-chunk-18-1.png" width="360" /&gt;
+
+]
+
+???
+
+What I'm showing here is the trace plot and final projection of a 2D problem, optimised by creeping random search
+
+- the optimiser finds the clusters, but the edges of the clusters are not clear
+- we want to improve this and hence create a polish search
+- In polish search, you sample a set of bases within a tiny neighbourhood parameter and see if there is any local breakthrough
+
+The green path and image show the index value and  projection after polishing and we can observe much clearer edges, especially along the verticle axis.
+
+
+---
+# Case study: optimising a noisy index
+
+.pull-left[
+### Which optimiser(s) work and which didn't?
+
+&lt;br&gt;
+
+New index: `$$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$` 
+
+&lt;small&gt; where `\(F_{.}(n)\)` is the ECDF function &lt;/small&gt;
+
+]
+
+--
+
+.pull-right[
+
+&lt;img src="index_files/figure-html/unnamed-chunk-19-1.png" width="504" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+
+
+
+---
+# Case study: optimising a noisy index
+
+### What happen if there is local maximum?
+
+--
+
+.pull-left[
+
+&lt;img src="index_files/figure-html/unnamed-chunk-20-1.png" width="504" /&gt;
+
+]
+
+--
+
+.pull-right[
+- [CRS &amp; 0.5] is fast and simple
+]
+
+--
+
+.pull-right[
+- with a larger search size of 0.7, more find the global max
+&lt;br&gt;
+]
+
+--
+
+.pull-right[
+- small search size: 0.5 hinders SA to find the global max
+]
+
+--
+
+.pull-right[
+- [SA &amp; 0.7] finds the global max in 16 out of 20 simulations and gets closer
+
+]
+
+---
+
+
+background-image: url()
+background-size: cover
+class: hide-slide-number split-70
+count: false
+
+.column.shade_black[.content[
+
+&lt;small&gt;*Slides produced using [Rmarkdown](https://github.com/rstudio/rmarkdown) with [xaringan](https://github.com/yihui/xaringan) styling available at &lt;i class="fa fa-github"&gt;&lt;/i&gt; [huizezhang-sherry/useR2021](https://github.com/huizezhang-sherry/useR2021)*&lt;/small&gt;
+
+&lt;br&gt;&lt;br&gt;
+
+&lt;p style = "font-size: 60px"&gt; Questions? &lt;/p&gt;
+
+.bottom_abs.width100[
+
+## H. Sherry Zhang
+
+&lt;i class="fa fa-twitter"&gt;&lt;/i&gt; [huizezhangsh](https://twitter.com/huizezhangsh)
+&lt;i class="fa fa-link"&gt;&lt;/i&gt; https://huizezhangsh.netlify.com/
+
+
+Supervised by Dianne Cook, Patricia Menéndez, Nicolas Langrené, and Ursula Laa
+
+
+]
+
+
+]]
+
+
+
+&lt;div class="column transition monash-m-new delay-1s" style="clip-path:url(#swipe__clip-path);"&gt;
+&lt;div class="background-image" style="background-image:url('img/large.png');background-position: center;background-size:cover;margin-left:3px;"&gt;
+&lt;svg class="clip-svg absolute"&gt;
+&lt;defs&gt;
+&lt;clipPath id="swipe__clip-path" clipPathUnits="objectBoundingBox"&gt;
+&lt;polygon points="0.5745 0, 0.5 0.33, 0.42 0, 0 0, 0 1, 0.27 1, 0.27 0.59, 0.37 1, 0.634 1, 0.736 0.59, 0.736 1, 1 1, 1 0, 0.5745 0" /&gt;
+&lt;/clipPath&gt;
+&lt;/defs&gt;	
+&lt;/svg&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="libs/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLanguage": "r",
+"highlightLines": true,
+"highlightSpans": false,
+"countIncrementalSlides": false,
+"slideNumberFormat": "<div class=\"progress-bar-container\">\n  <div class=\"progress-bar\" style=\"width: calc(%current% / %total% * 100%);\">\n  </div>\n</div>\n",
+"navigation": {
+"scroll": false,
+"touch": true,
+"click": false
+},
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'assets/mathjax-local/MathJax.js?config=TeX-AMS-MML_HTMLorMML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
