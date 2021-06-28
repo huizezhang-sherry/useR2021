@@ -1,15 +1,20 @@
-background-image: url(`r rmarkdown::metadata$endimg`)
-background-size: cover
+background-image: url("img/logo.png")
+background-size: 180px 180px
+background-position: 62% 10%
 class: hide-slide-number split-70
 count: false
 
-.column.shade_black[.content[
+.column.content[
 
-<small>*Slides produced using [Rmarkdown](https://github.com/rstudio/rmarkdown) with [xaringan](https://github.com/yihui/xaringan) styling available at <i class="fa fa-github"></i> [huizezhang-sherry/useR2021](https://github.com/huizezhang-sherry/useR2021)*</small>
 
-<br><br>
+<br>
 
 <p style = "font-size: 60px"> Questions? </p>
+
+Package: <i class="fa fa-github"></i> [huizezhang-sherry/ferrn](https://github.com/huizezhang-sherry/ferrn)
+
+Slides: <i class="fa fa-github"></i> [huizezhang-sherry/useR2021](https://github.com/huizezhang-sherry/useR2021)
+
 
 .bottom_abs.width100[
 
@@ -19,10 +24,10 @@ count: false
 <i class="fa fa-link"></i> https://huizezhangsh.netlify.com/
 
 
-Supervised by Dianne Cook, Patricia Menéndez, Nicolas Langrené, and Ursula Laa
+
+Supervised by Dianne Cook, Ursula Laa, Nicolas Langrené, and Patricia Menéndez
 
 
-]
 
 
 ]]

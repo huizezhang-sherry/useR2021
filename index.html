@@ -23,16 +23,14 @@
 
 
 
-background-image: url() 
-background-size: cover
 class: hide-slide-number split-70 title-slide
 count: false
 
-.column.shade_black[.content[
+.column.content[
 
 &lt;br&gt;
 
-# .monash-blue.outline-text[Visual Diagnostics for Constrained Optimisation with Application to Guided Tours]
+# Visual Diagnostics for Constrained Optimisation with Application to Guided Tours
 
 &lt;br&gt;
 
@@ -41,16 +39,13 @@ count: false
 ## H. Sherry Zhang
 
 
-Supervised by Dianne Cook, Patricia Menéndez, Nicolas Langrené, and Ursula Laa
+Supervised by Dianne Cook, Ursula Laa, Nicolas Langrené, and Patricia Menéndez
 
 6th Jul 2021
-
-&lt;i class="fa fa-link"&gt;&lt;/i&gt;: https://sherry-confirmation.netlify.app
-&lt;br&gt;
 ]
 
 
-]]
+]
 
 
 
@@ -68,6 +63,20 @@ Supervised by Dianne Cook, Patricia Menéndez, Nicolas Langrené, and Ursula Laa
 
 
 
+
+---
+class: middle transition
+
+## Motivation and background 
+
+- What is guided tour? 
+- What are the optimisers?
+- An example of optimising with tour
+
+???
+
+- motivation and background
+- specifically, what is guided tour, what are the optimisers with an example
 
 ---
 
@@ -101,9 +110,7 @@ To understand where the optimisers were failing, ideally we need to visualise th
 intro: 
 
 - This is an interesting visualisation problem because
-- I'm going to talk about this today 
-- Before I do that, I will give an overview of my research plan
-  
+
 ---
 
 # What is projection pursuit and guided tour?
@@ -184,8 +191,12 @@ Pseudo derivative:
 ]
 .pull-right[
 
+- Simulated data: 5 variables, `\(x_2\)` is informative: `\(0.5 \mathcal{N}(-3, 1) + 0.5 \mathcal{N}(3, 1)\)`, others are random normal
+- Run guided tour and record the relevant information
+
+
 - 1D projection: histogram
-- `\(x_2\)` is informative: `\(0.5 \mathcal{N}(-3, 1) + 0.5 \mathcal{N}(3, 1)\)`, others are random normal
+- 
 - We expect: 
   - `\(x_2\)` has weight close to 1, and 
   - others close to 0
@@ -207,6 +218,16 @@ Here is the animation I promised earlier
 - so we need some visual tools to help us diagnose where the things go wrong
 
 ---
+class: middle transition
+
+## Visual diagnostic toolbox 
+  - `explore_trace_search()`
+  - `explore_trace_interp()`
+  - `explore_space_pca()`
+  - `explore_space_tour()`
+
+
+---
 # Toolbox: search plot
 
 .pull-left[
@@ -218,6 +239,7 @@ Here is the animation I promised earlier
 
 - how many searches in each iteration
 - what is the index value of the best basis and how much it improves
+
 ]
 
 ???
@@ -351,22 +373,7 @@ Learn:
 ---
 # Toolbox: space plot for 2D bases
 
-2D basis space is no longer a sphere!
-
-???
-
-intro:
-- generate random 2D bases, animate with tour
-- guess what shape is it
-
-body:
-- six frames
-- torus, two circles, frame 4, frame 5 
-- each axis forms a circle, sum of square adds to 1, orthogonal, product of two circles as a torus
-- need to make sure I'm correct: this is a 3D flat torus since we have three variables and the torus is defined by three pairs of `sin` and `cos`
-- we can also embed the 2D path into the torus
-
---
+2D basis space is no longer a sphere, but a torus!
 
 .pull-left[
 
@@ -375,17 +382,29 @@ body:
 
 ]
 
-
---
 .pull-right[
 &lt;img src="index_files/figure-html/unnamed-chunk-14-1.png" width="100%" /&gt;
 
 ]
 
+
+
+???
+
+- similarly we can generate random 2D bases, animate with tour, and embed the 2D path
+
+- Here is the 2D basis space and some frames captured from the animation
+
+- we can see that the shape is no longer a sphere and it is actually a torus
+
 ---
 class: middle transition
 
+
 ## Improvement made based on the diagnostics
+
+- Interruption
+- Polish
 
 ???
 
@@ -441,6 +460,16 @@ The green path and image show the index value and  projection after polishing an
 
 
 ---
+class: middle transition
+
+
+## Case study: optimising a noisy index
+
+- Which optimiser(s) work and which didn't?
+- What happen if there is local maximum?
+
+---
+
 # Case study: optimising a noisy index
 
 .pull-left[
@@ -453,8 +482,6 @@ New index: `$$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$`
 &lt;small&gt; where `\(F_{.}(n)\)` is the ECDF function &lt;/small&gt;
 
 ]
-
---
 
 .pull-right[
 
@@ -471,8 +498,6 @@ New index: `$$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$`
 
 ### What happen if there is local maximum?
 
---
-
 .pull-left[
 
 &lt;img src="index_files/figure-html/unnamed-chunk-20-1.png" width="504" /&gt;
@@ -485,20 +510,14 @@ New index: `$$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$`
 - [CRS &amp; 0.5] is fast and simple
 ]
 
---
-
 .pull-right[
 - with a larger search size of 0.7, more find the global max
 &lt;br&gt;
 ]
 
---
-
 .pull-right[
 - small search size: 0.5 hinders SA to find the global max
 ]
-
---
 
 .pull-right[
 - [SA &amp; 0.7] finds the global max in 16 out of 20 simulations and gets closer
@@ -507,19 +526,31 @@ New index: `$$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$`
 
 ---
 
+# Summary
 
-background-image: url()
-background-size: cover
+- 
+- 
+
+---
+
+
+background-image: url("img/logo.png")
+background-size: 180px 180px
+background-position: 62% 10%
 class: hide-slide-number split-70
 count: false
 
-.column.shade_black[.content[
+.column.content[
 
-&lt;small&gt;*Slides produced using [Rmarkdown](https://github.com/rstudio/rmarkdown) with [xaringan](https://github.com/yihui/xaringan) styling available at &lt;i class="fa fa-github"&gt;&lt;/i&gt; [huizezhang-sherry/useR2021](https://github.com/huizezhang-sherry/useR2021)*&lt;/small&gt;
 
-&lt;br&gt;&lt;br&gt;
+&lt;br&gt;
 
 &lt;p style = "font-size: 60px"&gt; Questions? &lt;/p&gt;
+
+Package: &lt;i class="fa fa-github"&gt;&lt;/i&gt; [huizezhang-sherry/ferrn](https://github.com/huizezhang-sherry/ferrn)
+
+Slides: &lt;i class="fa fa-github"&gt;&lt;/i&gt; [huizezhang-sherry/useR2021](https://github.com/huizezhang-sherry/useR2021)
+
 
 .bottom_abs.width100[
 
@@ -529,10 +560,10 @@ count: false
 &lt;i class="fa fa-link"&gt;&lt;/i&gt; https://huizezhangsh.netlify.com/
 
 
-Supervised by Dianne Cook, Patricia Menéndez, Nicolas Langrené, and Ursula Laa
+
+Supervised by Dianne Cook, Ursula Laa, Nicolas Langrené, and Patricia Menéndez
 
 
-]
 
 
 ]]

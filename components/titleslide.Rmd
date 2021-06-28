@@ -1,13 +1,11 @@
-background-image: url(`r rmarkdown::metadata$bgimg`) 
-background-size: cover
 class: hide-slide-number split-70 title-slide
 count: false
 
-.column.shade_black[.content[
+.column.content[
 
 <br>
 
-# .monash-blue.outline-text[`r rmarkdown::metadata$title`]
+# `r rmarkdown::metadata$title`
 
 <br>
 
@@ -16,16 +14,13 @@ count: false
 ## `r rmarkdown::metadata$author`
 
 
-Supervised by Dianne Cook, Patricia Menéndez, Nicolas Langrené, and Ursula Laa
+Supervised by Dianne Cook, Ursula Laa, Nicolas Langrené, and Patricia Menéndez
 
 `r rmarkdown::metadata$date`
-
-<i class="fa fa-link"></i>: https://sherry-confirmation.netlify.app
-<br>
 ]
 
 
-]]
+]
 
 
 

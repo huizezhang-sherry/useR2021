@@ -2,9 +2,6 @@
 title: "Visual Diagnostics for Constrained Optimisation with Application to Guided Tours"
 author: "H. Sherry Zhang"
 date: "6th Jul 2021"
-pdflink: ""
-endimg: 
-bgimg: 
 output:
   xaringan::moon_reader:
     css:
@@ -55,6 +52,20 @@ purrr::walk(.x = files, ~load(here::here(.x), env = globalenv()))
 
 
 ---
+class: middle transition
+
+## Motivation and background 
+
+- What is guided tour? 
+- What are the optimisers?
+- An example of optimising with tour
+
+???
+
+- motivation and background
+- specifically, what is guided tour, what are the optimisers with an example
+
+---
 
 # Motivation
 
@@ -86,9 +97,7 @@ To understand where the optimisers were failing, ideally we need to visualise th
 intro: 
 
 - This is an interesting visualisation problem because
-- I'm going to talk about this today 
-- Before I do that, I will give an overview of my research plan
-  
+
 ---
 
 # What is projection pursuit and guided tour?
@@ -183,8 +192,12 @@ knitr::include_graphics("./img/tour-demo.gif")
 ]
 .pull-right[
 
+- Simulated data: 5 variables, $x_2$ is informative: $0.5 \mathcal{N}(-3, 1) + 0.5 \mathcal{N}(3, 1)$, others are random normal
+- Run guided tour and record the relevant information
+
+
 - 1D projection: histogram
-- $x_2$ is informative: $0.5 \mathcal{N}(-3, 1) + 0.5 \mathcal{N}(3, 1)$, others are random normal
+- 
 - We expect: 
   - $x_2$ has weight close to 1, and 
   - others close to 0
@@ -206,6 +219,16 @@ Here is the animation I promised earlier
 - so we need some visual tools to help us diagnose where the things go wrong
 
 ---
+class: middle transition
+
+## Visual diagnostic toolbox 
+  - `explore_trace_search()`
+  - `explore_trace_interp()`
+  - `explore_space_pca()`
+  - `explore_space_tour()`
+
+
+---
 # Toolbox: search plot
 
 .pull-left[
@@ -222,6 +245,7 @@ holes_1d_better %>%
 
 - how many searches in each iteration
 - what is the index value of the best basis and how much it improves
+
 ]
 
 ???
@@ -418,22 +442,7 @@ p1 / pca_plot
 ---
 # Toolbox: space plot for 2D bases
 
-2D basis space is no longer a sphere!
-
-???
-
-intro:
-- generate random 2D bases, animate with tour
-- guess what shape is it
-
-body:
-- six frames
-- torus, two circles, frame 4, frame 5 
-- each axis forms a circle, sum of square adds to 1, orthogonal, product of two circles as a torus
-- need to make sure I'm correct: this is a 3D flat torus since we have three variables and the torus is defined by three pairs of `sin` and `cos`
-- we can also embed the 2D path into the torus
-
---
+2D basis space is no longer a sphere, but a torus!
 
 .pull-left[
 ```{r eval = FALSE}
@@ -473,8 +482,6 @@ knitr::include_graphics("./img/torus.gif")
 
 ]
 
-
---
 .pull-right[
 ```{r out.width = "100%"}
 frames <- c("001", "017", "064", "068", "075", "100")
@@ -486,10 +493,24 @@ wrap_plots(gl)
 
 ]
 
+
+
+???
+
+- similarly we can generate random 2D bases, animate with tour, and embed the 2D path
+
+- Here is the 2D basis space and some frames captured from the animation
+
+- we can see that the shape is no longer a sphere and it is actually a torus
+
 ---
 class: middle transition
 
+
 ## Improvement made based on the diagnostics
+
+- Interruption
+- Polish
 
 ???
 
@@ -617,6 +638,16 @@ The green path and image show the index value and  projection after polishing an
 
 
 ---
+class: middle transition
+
+
+## Case study: optimising a noisy index
+
+- Which optimiser(s) work and which didn't?
+- What happen if there is local maximum?
+
+---
+
 # Case study: optimising a noisy index
 
 .pull-left[
@@ -629,8 +660,6 @@ New index: $$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$
 <small> where $F_{.}(n)$ is the ECDF function </small>
 
 ]
-
---
 
 .pull-right[
 
@@ -674,8 +703,6 @@ p2 <- pca %>%
 # Case study: optimising a noisy index
 
 ### What happen if there is local maximum?
-
---
 
 .pull-left[
 
@@ -725,25 +752,26 @@ clean_pca %>% drop_na() %>% rename(`search size` = alpha) %>%
 - [CRS & 0.5] is fast and simple
 ]
 
---
-
 .pull-right[
 - with a larger search size of 0.7, more find the global max
 <br>
 ]
 
---
-
 .pull-right[
 - small search size: 0.5 hinders SA to find the global max
 ]
-
---
 
 .pull-right[
 - [SA & 0.7] finds the global max in 16 out of 20 simulations and gets closer
 
 ]
+
+---
+
+# Summary
+
+- 
+- 
 
 ---
 
