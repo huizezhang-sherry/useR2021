@@ -11,10 +11,20 @@ count: false
 
 .bottom_abs.width100[
 
-## `r rmarkdown::metadata$author`
+<!-- ## `r rmarkdown::metadata$author` -->
 
 
-Supervised by Dianne Cook, Ursula Laa, Nicolas Langrené, and Patricia Menéndez
+<!-- Supervised by Dianne Cook, Ursula Laa, Nicolas Langrené, and Patricia Menéndez -->
+
+.monash-black[H. Sherry Zhang] .institute-size[.monash-gray80[Monash]]
+
+Dianne Cook .institute-size[.monash-gray80[Monash]]
+
+Ursula Laa .institute-size[.monash-gray80[BOKU]]
+
+Nicolas Langrené .institute-size[.monash-gray80[CSIRO Data61]]
+
+Patricia Menéndez .institute-size[.monash-gray80[Monash]]
 
 `r rmarkdown::metadata$date`
 ]

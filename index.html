@@ -36,10 +36,20 @@ count: false
 
 .bottom_abs.width100[
 
-## H. Sherry Zhang
+&lt;!-- ## H. Sherry Zhang --&gt;
 
 
-Supervised by Dianne Cook, Ursula Laa, Nicolas Langrené, and Patricia Menéndez
+&lt;!-- Supervised by Dianne Cook, Ursula Laa, Nicolas Langrené, and Patricia Menéndez --&gt;
+
+.monash-black[H. Sherry Zhang] .institute-size[.monash-gray80[Monash]]
+
+Dianne Cook .institute-size[.monash-gray80[Monash]]
+
+Ursula Laa .institute-size[.monash-gray80[BOKU]]
+
+Nicolas Langrené .institute-size[.monash-gray80[CSIRO Data61]]
+
+Patricia Menéndez .institute-size[.monash-gray80[Monash]]
 
 6th Jul 2021
 ]
@@ -63,20 +73,40 @@ Supervised by Dianne Cook, Ursula Laa, Nicolas Langrené, and Patricia Menéndez
 
 
 
+???
+
+- Hi everyone, 
+- my name is Sherry from Monash University
+- Today I will be talking about ...
+- This is a joint work with 
 
 ---
-class: middle transition
 
-## Motivation and background 
+## Overview
 
-- What is guided tour? 
-- What are the optimisers?
-- An example of optimising with tour
+- **Motivation and background**
+  - What is a guided tour?
+  - What is the optimisation problem &amp; optimisers used?
+  - An example of optimisation in the guided tour
+
+.monash-gray50[
+- **Visual diagnostic toolbox**
+- **Improvement made based on the diagnostics**
+- **Case study: optimising a noisy index**
+]
+
 
 ???
 
-- motivation and background
-- specifically, what is guided tour, what are the optimisers with an example
+- let me first give you an overview of my talk today
+- I'll first introduce ... (of our study), specifically ..., and I will give 
+- I will than show the tools that we created for visually diagnose the tour optimisation
+- Then I'll give two examples of 
+  - how these plots help us to improve the optimisation in the guided tour
+- Lastly, we will go through a case study 
+  - on how these diagnostics inform us about the optimisation of a noisy index
+
+
 
 ---
 
@@ -92,7 +122,7 @@ class: middle transition
 
 ???
 
-- project, motivated by ursula and Di's work, that apply pp to physics. 
+- project, motivated by ursula and Di's work, that apply guided tour to physics problem. 
 - this is what they write in the paper
 
 ---
@@ -115,20 +145,54 @@ intro:
 
 # What is projection pursuit and guided tour?
 
+.pull-left[
+Data: `\(\mathbf{X}_{n \times p}\)` Basis: `\(\mathbf{A}_{p\times d}\)` 
 
-- Data: `\(\mathbf{X}_{n \times p}\)`; Basis: `\(\mathbf{A}_{p\times d}\)`
-- Projection: `\(\mathbf{Y} = \mathbf{X} \cdot \mathbf{A}\)`
-- Index function: `\(f: \mathbb{R}^{n \times d} \mapsto \mathbb{R}\)` 
-- Optimisation: `\(\arg \max_{\mathbf{A} \in \mathcal{A}} f(\mathbf{X} \cdot \mathbf{A})  ~~~ s.t. ~~~ \mathbf{A}^{\prime} \mathbf{A} = I_d\)`
+Projection: `\(\mathbf{Y} = \mathbf{X} \cdot \mathbf{A}\)`
 
-&lt;img src="./img/tour-path.png" width="592" style="display: block; margin: auto;" /&gt;
+Index function:   `\(f: \mathbb{R}^{n \times d} \mapsto \mathbb{R}\)`
+
+&lt;br&gt;
+**holes index:**
+
+  `\(\propto 1 -\frac{1}{n} \sum_{i = 1}^n \exp(-\frac{1}{2} y_i y_i^{\prime})\)`
+
+&lt;br&gt;
+
+density `\(\uparrow\)`, index value `\(\uparrow\)`
+
+In another word, it has "a hole" in the middle 
+  
+
+]
+
+.pull-right[
+
+&lt;img src="index_files/figure-html/unnamed-chunk-1-1.png" width="540" /&gt;
+    
+]
 
 
 ???
-Here are some background knowledge
-- Projection basis which gives a d-dimensional projection; characterise, the direction from which the data get projected; 
+Here are some background info
+- Projection basis, characterise, the direction from which the data get projected; 
 - Index function: maps the projection to a scalar, 
-  - measures interestingness, theoretical results show that, depart from normal distribution, intuitive explanation, CLT, more observations,  data distributed as normal
+- Throughout this presentation until the case study, we will be using an index function called holes index
+  - will not show the full formula, it is proportional to 1 - something that looks like a standardised gaussian density
+
+- on the right is the index value for different projections.
+  - observe that ... 
+  
+TODO: fix facet level  
+
+---
+# Optimisation problem
+
+- Optimisation: `$$\arg \max_{\mathbf{A} \in \mathcal{A}} f(\mathbf{X} \cdot \mathbf{A})  ~~~ s.t. ~~~ \mathbf{A}^{\prime} \mathbf{A} = I_d$$`
+
+&lt;img src="./img/tour-path.png" width="592" style="display: block; margin: auto;" /&gt;
+
+???
 - Optimisation: max the index, subject to orthonormality constraint
 
 &lt;br&gt; &lt;/br&gt;
@@ -138,7 +202,6 @@ The following illustration shows how projection pursuit and guided tour works to
 
 &lt;br&gt; &lt;/br&gt;
 later I will show a tour animation of 1D projection
-
 
 ---
 # Three optimisers
@@ -191,15 +254,21 @@ Pseudo derivative:
 ]
 .pull-right[
 
-- Simulated data: 5 variables, `\(x_2\)` is informative: `\(0.5 \mathcal{N}(-3, 1) + 0.5 \mathcal{N}(3, 1)\)`, others are random normal
-- Run guided tour and record the relevant information
+**1D projection: histogram**
 
+&lt;br&gt;
 
-- 1D projection: histogram
-- 
-- We expect: 
-  - `\(x_2\)` has weight close to 1, and 
-  - others close to 0
+**5 simulated variables**
+
+  - `\(x_2\)` is informative `\(0.5 \mathcal{N}(-3, 1) + 0.5 \mathcal{N}(3, 1)\)`
+  - others are random normal
+
+&lt;br&gt;
+
+**We expect:**
+
+  - `\(x_2\)` has weight close to 1
+  - others are close to 0
 ]
 
 
@@ -218,20 +287,32 @@ Here is the animation I promised earlier
 - so we need some visual tools to help us diagnose where the things go wrong
 
 ---
-class: middle transition
+## Overview
+.monash-gray50[
+- **Motivation and background**
+]
 
-## Visual diagnostic toolbox 
+- **Visual diagnostic toolbox**
   - `explore_trace_search()`
   - `explore_trace_interp()`
   - `explore_space_pca()`
   - `explore_space_tour()`
 
+.monash-gray50[
+- **Improvement made based on the diagnostics**
+- **Case study: optimising a noisy index**
+]
+
+???
+
+- Now I will show you four diagnostic plots that we created. 
+  - two for exploring the trace and two for space
 
 ---
 # Toolbox: search plot
 
 .pull-left[
-&lt;img src="index_files/figure-html/unnamed-chunk-4-1.png" width="504" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-5-1.png" width="504" /&gt;
 
 ]
 
@@ -252,7 +333,7 @@ Here are the different diagnostic plots that I created
 # Toolbox: trace plot
 
 .pull-left[
-&lt;img src="index_files/figure-html/unnamed-chunk-5-1.png" width="504" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-6-1.png" width="504" /&gt;
 
 ]
 
@@ -273,7 +354,7 @@ Here are the different diagnostic plots that I created
 # Toolbox: reduced-space plot
 
 .pull-left[
-&lt;img src="index_files/figure-html/unnamed-chunk-6-1.png" width="504" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-7-1.png" width="504" /&gt;
 ]
 
 
@@ -336,6 +417,8 @@ CRS finds it faster!
 ---
 # Toolbox: space plot
 
+The same two paths but on the 5D full space. 
+
 .pull-left[
 
 
@@ -350,11 +433,12 @@ CRS finds it faster!
 What I'm showing you now is the same two paths but on the full space. 
   - The basis space is a 5D unit sphere since the square of all the entries adds up to one
   - this can be simulated with `geozoo` package.
-  - find a frame that is most similar to the previous PCA view
+  - Here is a frame in the animation that is most similar to the previous PCA view
 
 This is what I find
   - CRS almost identical, PD misses a tail
   - see animation again, hide behind
+
 Learn: 
   - PCA, maximises variance, most spread, full space plot, other twisted view
 
@@ -364,7 +448,7 @@ Learn:
 
 .pull-right[
 
-&lt;img src="index_files/figure-html/unnamed-chunk-11-1.png" width="110%" height="120%" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-12-1.png" width="110%" height="120%" /&gt;
 
 ]
 
@@ -383,7 +467,7 @@ Learn:
 ]
 
 .pull-right[
-&lt;img src="index_files/figure-html/unnamed-chunk-14-1.png" width="100%" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-15-1.png" width="100%" /&gt;
 
 ]
 
@@ -391,20 +475,28 @@ Learn:
 
 ???
 
-- similarly we can generate random 2D bases, animate with tour, and embed the 2D path
+- similarly we can generate random 2D bases and animate it with the optimisation path embed
 
-- Here is the 2D basis space and some frames captured from the animation
+- Here is the 2D basis space rotated and some frames captured from the animation
 
 - we can see that the shape is no longer a sphere and it is actually a torus
 
 ---
-class: middle transition
+## Overview
 
+.monash-gray50[
+- **Motivation and background**
+- **Visual diagnostic toolbox**
+]
 
-## Improvement made based on the diagnostics
+- **Improvement made based on the diagnostics**
+  - Interruption
+  - Polish
 
-- Interruption
-- Polish
+.monash-gray50[
+- **Case study: optimising a noisy index**
+]
+
 
 ???
 
@@ -419,7 +511,7 @@ class: middle transition
 
 - Interruption: start the next round at the basis with the highest index value in the interpolation
 
-&lt;img src="index_files/figure-html/unnamed-chunk-15-1.png" width="936" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-16-1.png" width="936" style="display: block; margin: auto;" /&gt;
 
 
 ???
@@ -439,12 +531,12 @@ class: middle transition
 
 
 .left-col[
-&lt;img src="index_files/figure-html/unnamed-chunk-17-1.png" width="720" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-18-1.png" width="720" /&gt;
 
 ]
 
 .right-col[
-&lt;img src="index_files/figure-html/unnamed-chunk-18-1.png" width="360" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-19-1.png" width="360" /&gt;
 
 ]
 
@@ -460,13 +552,17 @@ The green path and image show the index value and  projection after polishing an
 
 
 ---
-class: middle transition
+## Overview
 
+.monash-gray50[
+- **Motivation and background**
+- **Visual diagnostic toolbox**
+- **Improvement made based on the diagnostics**
+]
 
-## Case study: optimising a noisy index
-
-- Which optimiser(s) work and which didn't?
-- What happen if there is local maximum?
+- **Case study: optimising a noisy index**
+  - Which optimiser(s) work and which didn't?
+  - What happen if there is local maximum?
 
 ---
 
@@ -485,7 +581,7 @@ New index: `$$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$`
 
 .pull-right[
 
-&lt;img src="index_files/figure-html/unnamed-chunk-19-1.png" width="504" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-20-1.png" width="504" style="display: block; margin: auto;" /&gt;
 ]
 
 ???
@@ -500,7 +596,7 @@ New index: `$$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$`
 
 .pull-left[
 
-&lt;img src="index_files/figure-html/unnamed-chunk-20-1.png" width="504" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-21-1.png" width="504" /&gt;
 
 ]
 
@@ -526,10 +622,20 @@ New index: `$$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$`
 
 ---
 
-# Summary
+# Takeaway
 
-- 
-- 
+- We have developed specialised visualisation tools to diagnose optimisation in projection pursuit guided tour
+
+
+- This allows us to unveil and justify algorithms that are not obvious to the end users
+
+&lt;br&gt;
+
+**For tourr developers:**
+- provides tools to test optimisers and optimisation of new indexes
+
+**For algorithm developers:**
+- can be seen as a work to enhance the interpretability of black-box optimsimation algorithms
 
 ---
 

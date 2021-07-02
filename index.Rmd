@@ -50,20 +50,40 @@ purrr::walk(.x = files, ~load(here::here(.x), env = globalenv()))
 ```{r titleslide, child="components/titleslide.Rmd"}
 ```
 
+???
+
+- Hi everyone, 
+- my name is Sherry from Monash University
+- Today I will be talking about ...
+- This is a joint work with 
 
 ---
-class: middle transition
 
-## Motivation and background 
+## Overview
 
-- What is guided tour? 
-- What are the optimisers?
-- An example of optimising with tour
+- **Motivation and background**
+  - What is a guided tour?
+  - What is the optimisation problem & optimisers used?
+  - An example of optimisation in the guided tour
+
+.monash-gray50[
+- **Visual diagnostic toolbox**
+- **Improvement made based on the diagnostics**
+- **Case study: optimising a noisy index**
+]
+
 
 ???
 
-- motivation and background
-- specifically, what is guided tour, what are the optimisers with an example
+- let me first give you an overview of my talk today
+- I'll first introduce ... (of our study), specifically ..., and I will give 
+- I will than show the tools that we created for visually diagnose the tour optimisation
+- Then I'll give two examples of 
+  - how these plots help us to improve the optimisation in the guided tour
+- Lastly, we will go through a case study 
+  - on how these diagnostics inform us about the optimisation of a noisy index
+
+
 
 ---
 
@@ -79,7 +99,7 @@ class: middle transition
 
 ???
 
-- project, motivated by ursula and Di's work, that apply pp to physics. 
+- project, motivated by ursula and Di's work, that apply guided tour to physics problem. 
 - this is what they write in the paper
 
 ---
@@ -102,22 +122,74 @@ intro:
 
 # What is projection pursuit and guided tour?
 
+.pull-left[
+Data: $\mathbf{X}_{n \times p}$ Basis: $\mathbf{A}_{p\times d}$ 
 
-- Data: $\mathbf{X}_{n \times p}$; Basis: $\mathbf{A}_{p\times d}$
-- Projection: $\mathbf{Y} = \mathbf{X} \cdot \mathbf{A}$
-- Index function: $f: \mathbb{R}^{n \times d} \mapsto \mathbb{R}$ 
-- Optimisation: $\arg \max_{\mathbf{A} \in \mathcal{A}} f(\mathbf{X} \cdot \mathbf{A})  ~~~ s.t. ~~~ \mathbf{A}^{\prime} \mathbf{A} = I_d$
+Projection: $\mathbf{Y} = \mathbf{X} \cdot \mathbf{A}$
+
+Index function:   $f: \mathbb{R}^{n \times d} \mapsto \mathbb{R}$
+
+<br>
+**holes index:**
+
+  $\propto 1 -\frac{1}{n} \sum_{i = 1}^n \exp(-\frac{1}{2} y_i y_i^{\prime})$
+
+<br>
+
+density $\uparrow$, index value $\uparrow$
+
+In another word, it has "a hole" in the middle 
+  
+
+]
+
+.pull-right[
+
+```{r echo = FALSE, fig.width=7.5}
+index_val <- boa %>% 
+  dplyr::select(-x4) %>% 
+  mutate(across(x1:x10, ~exp(-1/2 *.x ^2))) %>%
+  summarise(across(contains("x"), ~sum(.x))) %>% 
+  mutate(across(contains("x"), ~(1-1/1000*(.x))/(1-exp(-1/2)))) %>% 
+  pivot_longer(cols = x1: x10, names_to = "var", values_to = "index") %>% 
+  mutate(x = -2.5, y = 0.75)
+
+
+boa %>%
+  dplyr::select(-x4) %>% 
+  pivot_longer(cols = x1:x10, names_to = "var", values_to = "value") %>%
+  ggplot(aes(x = value)) +
+  geom_density() +
+  geom_label(data = index_val, aes(x = x, y = y, 
+                                   label = round(index, 3))) +
+  facet_wrap(vars(var))
+```
+    
+]
+
+
+???
+Here are some background info
+- Projection basis, characterise, the direction from which the data get projected; 
+- Index function: maps the projection to a scalar, 
+- Throughout this presentation until the case study, we will be using an index function called holes index
+  - will not show the full formula, it is proportional to 1 - something that looks like a standardised gaussian density
+
+- on the right is the index value for different projections.
+  - observe that ... 
+  
+TODO: fix facet level  
+
+---
+# Optimisation problem
+
+- Optimisation: $$\arg \max_{\mathbf{A} \in \mathcal{A}} f(\mathbf{X} \cdot \mathbf{A})  ~~~ s.t. ~~~ \mathbf{A}^{\prime} \mathbf{A} = I_d$$
 
 ```{r echo = FALSE, fig.align="center"}
 knitr::include_graphics("./img/tour-path.png")
 ```
 
-
 ???
-Here are some background knowledge
-- Projection basis which gives a d-dimensional projection; characterise, the direction from which the data get projected; 
-- Index function: maps the projection to a scalar, 
-  - measures interestingness, theoretical results show that, depart from normal distribution, intuitive explanation, CLT, more observations,  data distributed as normal
 - Optimisation: max the index, subject to orthonormality constraint
 
 <br> </br>
@@ -127,7 +199,6 @@ The following illustration shows how projection pursuit and guided tour works to
 
 <br> </br>
 later I will show a tour animation of 1D projection
-
 
 ---
 # Three optimisers
@@ -192,15 +263,21 @@ knitr::include_graphics("./img/tour-demo.gif")
 ]
 .pull-right[
 
-- Simulated data: 5 variables, $x_2$ is informative: $0.5 \mathcal{N}(-3, 1) + 0.5 \mathcal{N}(3, 1)$, others are random normal
-- Run guided tour and record the relevant information
+**1D projection: histogram**
 
+<br>
 
-- 1D projection: histogram
-- 
-- We expect: 
-  - $x_2$ has weight close to 1, and 
-  - others close to 0
+**5 simulated variables**
+
+  - $x_2$ is informative $0.5 \mathcal{N}(-3, 1) + 0.5 \mathcal{N}(3, 1)$
+  - others are random normal
+
+<br>
+
+**We expect:**
+
+  - $x_2$ has weight close to 1
+  - others are close to 0
 ]
 
 
@@ -219,14 +296,26 @@ Here is the animation I promised earlier
 - so we need some visual tools to help us diagnose where the things go wrong
 
 ---
-class: middle transition
+## Overview
+.monash-gray50[
+- **Motivation and background**
+]
 
-## Visual diagnostic toolbox 
+- **Visual diagnostic toolbox**
   - `explore_trace_search()`
   - `explore_trace_interp()`
   - `explore_space_pca()`
   - `explore_space_tour()`
 
+.monash-gray50[
+- **Improvement made based on the diagnostics**
+- **Case study: optimising a noisy index**
+]
+
+???
+
+- Now I will show you four diagnostic plots that we created. 
+  - two for exploring the trace and two for space
 
 ---
 # Toolbox: search plot
@@ -367,6 +456,8 @@ CRS finds it faster!
 ---
 # Toolbox: space plot
 
+The same two paths but on the 5D full space. 
+
 .pull-left[
 
 ```{r eval = FALSE}
@@ -416,11 +507,12 @@ knitr::include_graphics("./img/tour.gif")
 What I'm showing you now is the same two paths but on the full space. 
   - The basis space is a 5D unit sphere since the square of all the entries adds up to one
   - this can be simulated with `geozoo` package.
-  - find a frame that is most similar to the previous PCA view
+  - Here is a frame in the animation that is most similar to the previous PCA view
 
 This is what I find
   - CRS almost identical, PD misses a tail
   - see animation again, hide behind
+
 Learn: 
   - PCA, maximises variance, most spread, full space plot, other twisted view
 
@@ -497,20 +589,28 @@ wrap_plots(gl)
 
 ???
 
-- similarly we can generate random 2D bases, animate with tour, and embed the 2D path
+- similarly we can generate random 2D bases and animate it with the optimisation path embed
 
-- Here is the 2D basis space and some frames captured from the animation
+- Here is the 2D basis space rotated and some frames captured from the animation
 
 - we can see that the shape is no longer a sphere and it is actually a torus
 
 ---
-class: middle transition
+## Overview
 
+.monash-gray50[
+- **Motivation and background**
+- **Visual diagnostic toolbox**
+]
 
-## Improvement made based on the diagnostics
+- **Improvement made based on the diagnostics**
+  - Interruption
+  - Polish
 
-- Interruption
-- Polish
+.monash-gray50[
+- **Case study: optimising a noisy index**
+]
+
 
 ???
 
@@ -638,13 +738,17 @@ The green path and image show the index value and  projection after polishing an
 
 
 ---
-class: middle transition
+## Overview
 
+.monash-gray50[
+- **Motivation and background**
+- **Visual diagnostic toolbox**
+- **Improvement made based on the diagnostics**
+]
 
-## Case study: optimising a noisy index
-
-- Which optimiser(s) work and which didn't?
-- What happen if there is local maximum?
+- **Case study: optimising a noisy index**
+  - Which optimiser(s) work and which didn't?
+  - What happen if there is local maximum?
 
 ---
 
@@ -768,10 +872,20 @@ clean_pca %>% drop_na() %>% rename(`search size` = alpha) %>%
 
 ---
 
-# Summary
+# Takeaway
 
-- 
-- 
+- We have developed specialised visualisation tools to diagnose optimisation in projection pursuit guided tour
+
+
+- This allows us to unveil and justify algorithms that are not obvious to the end users
+
+<br>
+
+**For tourr developers:**
+- provides tools to test optimisers and optimisation of new indexes
+
+**For algorithm developers:**
+- can be seen as a work to enhance the interpretability of black-box optimsimation algorithms
 
 ---
 
