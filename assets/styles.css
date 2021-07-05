@@ -122,11 +122,11 @@ a {
 
 .left-col {
   float: left;
-  width: 67%;
+  width: 50%;
 }
 .right-col {
   float: right;
-  width: 27%;
+  width: 45%;
 }
 
 .grid, .grid-col, .grid-row {

@@ -53,9 +53,9 @@ purrr::walk(.x = files, ~load(here::here(.x), env = globalenv()))
 ???
 
 - Hi everyone, 
-- my name is Sherry from Monash University
+- my name is Sherry Zhang, a 2nd year PhD student from Monash University in Australia
 - Today I will be talking about ...
-- This is a joint work with 
+- This is a work supervised by 
 
 ---
 
@@ -89,17 +89,24 @@ purrr::walk(.x = files, ~load(here::here(.x), env = globalenv()))
 
 # Motivation
 
-> The work also reveals inadequacies in the tour optimization algorithm, that may benefit from newly developed techniques and software tools. Exploring this area would help improve the guided tours. As new optimization techniques become available, adapting these to the guided tour would extend the technique to a broader range of problems. (Laa & Cook, 2020)
+> The work also reveals inadequacies in the tour optimization algorithm, that may benefit from newly developed techniques and software tools. (Laa & Cook, 2020)
 
+.pull-left[
 - For simulated data, the optimisers
   - often failed at finding the expected maxima, or 
   - would only get close but not reach the maxima
 - For noisy index functions it failed completely
+]
+
+.pull-right[
+
+
+]
 
 
 ???
 
-- project, motivated by ursula and Di's work, that apply guided tour to physics problem. 
+- project, motivated by ursula and Di's work, that apply guided tour to physics problems. 
 - this is what they write in the paper
 
 ---
@@ -138,7 +145,7 @@ Index function:   $f: \mathbb{R}^{n \times d} \mapsto \mathbb{R}$
 
 density $\uparrow$, index value $\uparrow$
 
-In another word, it has "a hole" in the middle 
+In another word, it has "a hole" in the middle, hence the name 
   
 
 ]
@@ -158,11 +165,12 @@ index_val <- boa %>%
 boa %>%
   dplyr::select(-x4) %>% 
   pivot_longer(cols = x1:x10, names_to = "var", values_to = "value") %>%
+  mutate(var = factor(var, levels = paste0("x", c(1:3, 5:10)))) %>% 
   ggplot(aes(x = value)) +
   geom_density() +
   geom_label(data = index_val, aes(x = x, y = y, 
                                    label = round(index, 3))) +
-  facet_wrap(vars(var))
+  facet_wrap(vars(fct_relevel(var, "x10", after = 9)))
 ```
     
 ]
@@ -170,15 +178,13 @@ boa %>%
 
 ???
 Here are some background info
+- data, basis
 - Projection basis, characterise, the direction from which the data get projected; 
+- projection 
 - Index function: maps the projection to a scalar, 
 - Throughout this presentation until the case study, we will be using an index function called holes index
-  - will not show the full formula, it is proportional to 1 - something that looks like a standardised gaussian density
-
-- on the right is the index value for different projections.
-  - observe that ... 
-  
-TODO: fix facet level  
+  - will not show the full formula, but it is proportional to 1 - something that looks like a standardised gaussian density
+- on the right I have calculated the index value for some 1D projections and we can observe that ... 
 
 ---
 # Optimisation problem
@@ -263,18 +269,18 @@ knitr::include_graphics("./img/tour-demo.gif")
 ]
 .pull-right[
 
-**1D projection: histogram**
+1D projection: histogram
 
 <br>
 
-**5 simulated variables**
+5 simulated variables
 
   - $x_2$ is informative $0.5 \mathcal{N}(-3, 1) + 0.5 \mathcal{N}(3, 1)$
   - others are random normal
 
 <br>
 
-**We expect:**
+We expect:
 
   - $x_2$ has weight close to 1
   - others are close to 0
@@ -296,80 +302,69 @@ Here is the animation I promised earlier
 - so we need some visual tools to help us diagnose where the things go wrong
 
 ---
-## Overview
-.monash-gray50[
-- **Motivation and background**
+# Ferrn package
+
+.left-col[
+**Four functions to explore the trace and space of the optimisers: **
+
+- `explore_trace_search()`
+- `explore_trace_interp()`
+- `explore_space_pca()`
+- `explore_space_tour()`
+
+**Botanical theme:**
+
+- `scale_color_continuous_botanical()`
+- `scale_color_discrete_botanical()`
+
+
 ]
+.right-col[
 
-- **Visual diagnostic toolbox**
-  - `explore_trace_search()`
-  - `explore_trace_interp()`
-  - `explore_space_pca()`
-  - `explore_space_tour()`
+**To produce plots: **
+```{r eval = FALSE, echo = TRUE}
+<data> %>% 
+  <explore_*>() %>% 
+  <scale_*>()
 
-.monash-gray50[
-- **Improvement made based on the diagnostics**
-- **Case study: optimising a noisy index**
-]
-
-???
-
-- Now I will show you four diagnostic plots that we created. 
-  - two for exploring the trace and two for space
-
----
-# Toolbox: search plot
-
-.pull-left[
-```{r, message=FALSE}
-holes_1d_better %>% 
-  explore_trace_search(extend_lower = 0.99) + 
-  scale_color_continuous_botanical() + 
-  theme_bw() + theme(legend.position = "none")
 ```
 
-]
-
-.pull-right[
-
-- how many searches in each iteration
-- what is the index value of the best basis and how much it improves
 
 ]
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+.institute-size[
+  `*` The syntax to adjust color in `explore_space_tour()` is slightly different
+]
+
+
 
 ???
+- In the ferrn package, there are 4 diagnostic plots that we created. Two for exploring the trace and two for space
 
-Here are the different diagnostic plots that I created
+- There is also the botanical theme for scale the color
 
-- How many different searches have been conducted
+- To produce a plot, you need to pipe the data collected from the optimisation into the one of the explore functions and make color adjustment using the botanical palette
 
----
-# Toolbox: trace plot
-
-.pull-left[
-```{r, message=FALSE}
-before %>%
-  explore_trace_interp(accuracy_y = 0.001, cutoff = 100, interp_size = 2, target_size = 5) +
-  scale_color_continuous_botanical() 
-```
-
-]
-
-.pull-right[
-- what's the index value of the interpolating bases
-- index first increases and then decreases in the 3rd & 4th iteration!
-
-]
-
-???
-
-- Trace plot, showing the index values of the interpolating bases, white frames
-- we see smooth interpolation here, different curvatures, specifically
-
-- This shows a problem in the tour algorithm and I will come back to this plot later
+- Due to the time limit of this talk, I'm only going to show you the space plot here and later you will have the chance to see the trace plot
 
 ---
-# Toolbox: reduced-space plot
+# Reduced space plot
 
 .pull-left[
 ```{r}
@@ -454,7 +449,7 @@ CRS finds it faster!
 ]
 
 ---
-# Toolbox: space plot
+# Space plot for 1D basis
 
 The same two paths but on the 5D full space. 
 
@@ -505,8 +500,7 @@ knitr::include_graphics("./img/tour.gif")
 ???
 
 What I'm showing you now is the same two paths but on the full space. 
-  - The basis space is a 5D unit sphere since the square of all the entries adds up to one
-  - this can be simulated with `geozoo` package.
+  - The basis space is a 5D unit sphere since the orthonormality constraint requires the square of all the entries adds up to one
   - Here is a frame in the animation that is most similar to the previous PCA view
 
 This is what I find
@@ -532,7 +526,7 @@ p1 / pca_plot
 
 
 ---
-# Toolbox: space plot for 2D bases
+# Space plot for 2D bases
 
 2D basis space is no longer a sphere, but a torus!
 
@@ -591,9 +585,9 @@ wrap_plots(gl)
 
 - similarly we can generate random 2D bases and animate it with the optimisation path embed
 
-- Here is the 2D basis space rotated and some frames captured from the animation
+- Here I have generated the 2D basis space and captured some frames from the animation
 
-- we can see that the shape is no longer a sphere and it is actually a torus
+- This time, 
 
 ---
 ## Overview
@@ -877,12 +871,12 @@ clean_pca %>% drop_na() %>% rename(`search size` = alpha) %>%
 - We have developed specialised visualisation tools to diagnose optimisation in projection pursuit guided tour
 
 
-- This allows us to unveil and justify algorithms that are not obvious to the end users
+- This allows us to understand algorithms that are not obvious to the end users
 
 <br>
 
 **For tourr developers:**
-- provides tools to test optimisers and optimisation of new indexes
+- provides tools to test new optimisers and optimisation of new indexes
 
 **For algorithm developers:**
 - can be seen as a work to enhance the interpretability of black-box optimsimation algorithms

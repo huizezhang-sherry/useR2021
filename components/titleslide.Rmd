@@ -16,7 +16,7 @@ count: false
 
 <!-- Supervised by Dianne Cook, Ursula Laa, Nicolas Langrené, and Patricia Menéndez -->
 
-.monash-black[H. Sherry Zhang] .institute-size[.monash-gray80[Monash]]
+.monash-black[**H. Sherry Zhang**] .institute-size[.monash-gray80[**Monash**]]
 
 Dianne Cook .institute-size[.monash-gray80[Monash]]
 
