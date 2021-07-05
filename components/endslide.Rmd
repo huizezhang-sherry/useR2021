@@ -11,16 +11,16 @@ count: false
 
 <p style = "font-size: 60px"> Questions? </p>
 
-Package: <i class="fa fa-github"></i> [huizezhang-sherry/ferrn](https://github.com/huizezhang-sherry/ferrn)
+Package: `r anicon::faa("github", animate = "none")` [huizezhang-sherry/ferrn](https://github.com/huizezhang-sherry/ferrn)
 
-Slides: <i class="fa fa-github"></i> [huizezhang-sherry/useR2021](https://github.com/huizezhang-sherry/useR2021)
+Slides: `r anicon::faa("github", animate = "none")` [huizezhang-sherry/useR2021](https://github.com/huizezhang-sherry/useR2021)
 
 
 .bottom_abs.width100[
 
 ## `r rmarkdown::metadata$author`
 
-<i class="fa fa-twitter"></i> [huizezhangsh](https://twitter.com/huizezhangsh)
+`r anicon::faa("twitter", animate = "none")` [huizezhangsh](https://twitter.com/huizezhangsh)
 <i class="fa fa-link"></i> https://huizezhangsh.netlify.com/
 
 

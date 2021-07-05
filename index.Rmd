@@ -25,11 +25,7 @@ output:
       highlightLines: true
       highlightSpans: false 
       countIncrementalSlides: false
-      slideNumberFormat: |
-        <div class="progress-bar-container">
-          <div class="progress-bar" style="width: calc(%current% / %total% * 100%);">
-          </div>
-        </div>
+      slideNumberFormat: "%current%/%total%"
       navigation:
         scroll: false 
         touch: true
@@ -68,7 +64,6 @@ purrr::walk(.x = files, ~load(here::here(.x), env = globalenv()))
 
 .monash-gray50[
 - **Visual diagnostic toolbox**
-- **Improvement made based on the diagnostics**
 - **Case study: optimising a noisy index**
 ]
 
@@ -112,8 +107,9 @@ before %>% explore_trace_interp(cutoff = 100) + scale_color_continuous_botanical
 
 - project, motivated by ursula and Di's work, that apply guided tour to physics problems. 
 - this is what they write in the paper
-
-- We can see on the right that the optimiser could have found a better basis but somehow the index value decreases towards the end
+- they find that ...
+- We can see on the right that 
+  - the optimiser could have finished at a better place but it doesn't
 
 ---
 
@@ -203,22 +199,24 @@ To understand guided tour, we first need to talk about projection pursuit
   - randomly sample a basis and evaluate its index value
   - accept the basis if higher, discard if lower
 - Simulated annealing (SA):
-  - a second chance for acceptance with probability
+  - a second chance to be accepted with probability
   $$P= \min\left\{\exp\left[-\frac{\mid I_{\text{cur}} - I_{l} \mid}{T(l)}\right],1\right\}$$
   where $I_{(\cdot)}$ is the index value, $T(l) = \frac{T_0}{\log(l + 1)}$, $l$ is the # of eval in the current iter. 
   - As $l$ increases, $T(l)$ decreases, and the probability for accepting inferior bases decreases
 
 ???
 
-Three optimisers:  all random search algorithms
+To solve this optimisation problem, we have three optimisers. All of which are random search algorithms
 
 creeping random search: 
   - sample, satisfy orthonormality, evaluate
   - candidate, accept
 
 simulated annealing:
-  - follow the same, sampling, accepting, better
-  - different design for bases that are worse than the current, namely, it gives
+  - follows the same as CRS in sampling and accepting better bases, but
+  - it has a different design for bases that have lower index value. These bases have 
+  
+  - that is to say, the chance to accept a worse basis decreases as more bases are evaluated
   
 ---
 # Three random search optimisers 
@@ -233,8 +231,8 @@ simulated annealing:
 ???
 
 Pseudo derivative:
-  - flavour, gradient a'scent, first promising direction, compute a step size
-  - doesn't use derivatives, hard to operate on a basis
+  - flavour, gradient a'scent, as it first find a promising direction and then compute a step size
+  - we don't use derivatives here, hard to operate on a matrix basis. Instead, 
 
 ---
 # Projection pursuit with guided tour
@@ -250,6 +248,8 @@ knitr::include_graphics("./img/tour-path.png")
 ???
 
 This illustration shows how projection pursuit and guided tour works together
+
+Those are shown in the blue frames
 
 ---
 # An example
@@ -280,7 +280,7 @@ knitr::include_graphics("./img/tour-demo.gif")
 
 5 simulated variables
 
-  - $x_2$ is informative $0.5 \mathcal{N}(-3, 1) + 0.5 \mathcal{N}(3, 1)$
+  - $x_2$ is mixture normal $0.5 \mathcal{N}(-3, 1) + 0.5 \mathcal{N}(3, 1)$
   - others are random normal
 
 <br>
@@ -297,14 +297,14 @@ We expect:
 Here is how the animation looks like:
 
 - We use histogram to display 1D projections
-- Among the 5 variables, X2 is a mixture normal and others are random normal
+- In this example, there are 5 variables, X2 is a mixture normal and others are random normal
 - We expect: X2 to have a weight close to 1 and others close to 0
 
 <br> </br>
 
 - In this simple example, the optimiser works well to find the optimum
-- but this is not the case in all the problem, as we see in the literature
-- so we need some visual tools to help us diagnose where the things go wrong
+- but this is not the case for all the problem, as we see in the literature
+- so we need some visual tools to help us diagnose where things go wrong
 
 ---
 # Ferrn package
@@ -360,13 +360,14 @@ Here is how the animation looks like:
 
 
 ???
-- There are 4 diagnostic plots that we created. Two for exploring the trace and two for space
-- There is also the botanical theme for scale the color
+
+- In the ferrn package, there are 4 diagnostic plots being created. Two for exploring the trace and two for space
+- There is also botanical theme for scale the color
 - To produce a plot, you need to pipe the data collected from the optimisation into the one of the explore functions and make color adjustment using the botanical palette
-- Due to the time limit of this talk, I'm only going to show you the space plot here and later you will have the chance to see the trace plot
+- Due to the time limit of this talk, I will go through the two space plots here and later you will have the chance to see the trace plot
 
 ---
-# Reduced space plot
+# `explore_space_pca()`
 
 .pull-left[
 ```{r}
@@ -383,23 +384,27 @@ pca_plot
 
 ???
 
-First tell you how this plot is made and then what we can learn from it
+Here is the plot made with `explore_space_pca()`.
+  - It is the same optimisation problem we have in the previous example
+    - where x2 is informative and other 4 variables are random normal
+  - First tell you how this plot is made and then what we can learn from it
 
-- We have all the bases  evaluated in the optimisation - these are the coloured dots 
-- we also have random bases sampled from the space, that is used to draw the circle 
-- we then perform PCA on all these basis and take the first two to create this plot 
+- We have all the bases evaluated in the optimisation collected in the dataset - these are the coloured dots 
+- we also have random bases sampled from the space, these are used to draw the space 
+- we then perform PCA on these two sets of bases and take the first two to create this plot 
 
 In this plot 
 - The star is the theoretical best basis, corresponds to 1 in $x_2$ and 0 in others
 - we have two paths, CRS is coloured as brown and PD as green
-- the start and end of the path is annotated as larger dots
 - CRS evaluates random points in the space so you can see dots here and there
 - PD evaluates 5 directions locally, so you can see dots scattered around an accepted basis
 - The paths are interpolating paths in the space
 
-What we learn: 
+This plot tells us that ... and it helps us to ...
 
-- I create it to compare paths from different optimisers and to examine its coverage of the space
+we can also make an animated version of this plot 
+  - see clearer where each optimiser starts 
+  - an additional info, learn 
 
 --
 
@@ -434,12 +439,7 @@ knitr::include_graphics("./img/pca.gif")
 
 ]
 
-???
 
-
-we can also make an animated version of this plot 
-  - see where each optimiser starts clearer
-  - an additional info, learn 
 
 --
 
@@ -450,7 +450,7 @@ CRS finds it faster!
 ]
 
 ---
-# Space plot for 1D basis
+# `explore_space_tour()`
 
 The same two paths but on the 5D full space. 
 
@@ -501,7 +501,7 @@ knitr::include_graphics("./img/tour.gif")
 ???
 
 What I'm showing you now is the same two paths but on the full space. 
-  - The basis space is a 5D unit sphere since the orthonormality constraint requires the square of all the entries adds up to one
+  - The full space is a 5D unit sphere since the orthonormality constraint requires the square of all the entries adds up to one
   - Here is a frame in the animation that is most similar to the previous PCA view
 
 What we learn here is that
@@ -523,9 +523,9 @@ p1 / pca_plot
 
 
 ---
-# Space plot for 2D bases
+# 2D basis space
 
-2D basis space is no longer a sphere, but a torus!
+The basis space is no longer a sphere, but a torus!
 
 .pull-left[
 ```{r eval = FALSE}
@@ -580,7 +580,7 @@ wrap_plots(gl)
 
 ???
 
-- similarly we can generate random 2D bases and animate it with the optimisation path embed
+- similarly we can generate random 2D bases and animate it with the optimisation path embeded
 - Here I have generated the 2D basis space and captured some frames from the animation
 - This time, 
 
@@ -591,13 +591,53 @@ wrap_plots(gl)
 .pull-left[
 ### Which optimiser(s) work and which didn't?
 
-<br>
-
 New index: $$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$ 
 
 <small> where $F_{.}(n)$ is the ECDF function </small>
 
+```{r fig.height = 4}
+set.seed(123456)
+d <- 1
+basis1 <- tourr::basis_random(ncol(boa5), d)
+basis2 <- tourr::basis_random(ncol(boa5), d)
+geo <- tourr::geodesic_path(basis1, basis2)
+
+cur_dist <- 0
+target_dist <- geo$dist
+pos <- seq(cur_dist, target_dist, 1/100)
+interp <- tourr:::geodesic_info(basis1, basis2)
+
+calc_interp_kol <- function(fraction){
+  basis <- tourr:::step_fraction(interp = interp, fraction = fraction)
+  proj <- as.matrix(boa5) %*% basis
+  index <- tourr::norm_kol(nrow(boa5))
+  index(proj)
+}
+
+calc_interp_holes <- function(fraction){
+  basis <- tourr:::step_fraction(interp = interp, fraction = fraction)
+  proj <- as.matrix(boa5) %*% basis
+  index <- tourr::holes()
+  index(proj)
+}
+
+dt <- bind_rows(tibble(index_val = map_dbl(pos, calc_interp_kol)) %>% mutate(id = row_number(), index = "noisy"),
+          tibble(index_val = map_dbl(pos, calc_interp_holes)) %>% mutate(id = row_number(), index = "holes"))
+
+dt %>% 
+  ggplot(aes(x = id, y = index_val, group = index)) + 
+  geom_line() + 
+  facet_wrap(vars(index), scales = "free_y") + 
+  ylab("Index value") + 
+  xlab("Time")
+
+
+```
+
+
 ]
+
+--
 
 .pull-right[
 
