@@ -6,6 +6,8 @@
     <meta name="author" content="H. Sherry Zhang" />
     <script src="libs/header-attrs-2.8.6/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/ninjutsu.css" rel="stylesheet" />
+    <link href="libs/font-awesome-animation-1.0/font-awesome-animation-emi.css" rel="stylesheet" />
+    <script src="libs/fontawesome-5.0.13/js/fontawesome-all.min.js"></script>
     <!--
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
     -->
@@ -123,6 +125,8 @@ Patricia Menéndez .institute-size[.monash-gray80[Monash]]
 
 .pull-right[
 
+&lt;img src="index_files/figure-html/unnamed-chunk-1-1.png" width="504" /&gt;
+
 
 ]
 
@@ -131,6 +135,8 @@ Patricia Menéndez .institute-size[.monash-gray80[Monash]]
 
 - project, motivated by ursula and Di's work, that apply guided tour to physics problems. 
 - this is what they write in the paper
+
+- We can see on the right that the optimiser could have found a better basis but somehow the index value decreases towards the end
 
 ---
 
@@ -150,7 +156,7 @@ intro:
 
 ---
 
-# What is projection pursuit and guided tour?
+# What is projection pursuit?
 
 .pull-left[
 Data: `\(\mathbf{X}_{n \times p}\)` Basis: `\(\mathbf{A}_{p\times d}\)` 
@@ -165,51 +171,37 @@ Index function:   `\(f: \mathbb{R}^{n \times d} \mapsto \mathbb{R}\)`
   `\(\propto 1 -\frac{1}{n} \sum_{i = 1}^n \exp(-\frac{1}{2} y_i y_i^{\prime})\)`
 
 &lt;br&gt;
-
 density `\(\uparrow\)`, index value `\(\uparrow\)`
 
-In another word, it has "a hole" in the middle, hence the name 
+&lt;br&gt;
+
+**optimisation: **  
+  `$$\arg \max_{\mathbf{A} \in \mathcal{A}} f(\mathbf{X} \cdot \mathbf{A})  ~~~ s.t. ~~~ \mathbf{A}^{\prime} \mathbf{A} = I_d$$`
   
 
 ]
 
 .pull-right[
 
-&lt;img src="index_files/figure-html/unnamed-chunk-1-1.png" width="540" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-2-1.png" width="540" /&gt;
     
 ]
 
 
 ???
-Here are some background info
+To understand guided tour, we first need to talk about projection pursuit
 - data, basis
-- Projection basis, characterise, the direction from which the data get projected; 
+- Projection basis, that characterises the direction from which the data get projected;
 - projection 
-- Index function: maps the projection to a scalar, 
-- Throughout this presentation until the case study, we will be using an index function called holes index
-  - will not show the full formula, but it is proportional to 1 - something that looks like a standardised gaussian density
-- on the right I have calculated the index value for some 1D projections and we can observe that ... 
-
----
-# Optimisation problem
-
-- Optimisation: `$$\arg \max_{\mathbf{A} \in \mathcal{A}} f(\mathbf{X} \cdot \mathbf{A})  ~~~ s.t. ~~~ \mathbf{A}^{\prime} \mathbf{A} = I_d$$`
-
-&lt;img src="./img/tour-path.png" width="592" style="display: block; margin: auto;" /&gt;
-
-???
+- Index function: maps the projection to a scalar
+- Throughout this presentation until the very end, we will be using an index function called holes index
+  - will not show the full formula here, but it is proportional to 1 - something that looks like a standardised normal density
+- on the right I have calculated the index value for different 1D projections and we can observe that 
+  - for those projections that have high density regions, it has higher index value
 - Optimisation: max the index, subject to orthonormality constraint
 
-&lt;br&gt; &lt;/br&gt;
-The following illustration shows how projection pursuit and guided tour works together to produce a tour path
-- blue frames are from projection pursuit optimisation, since iterative algo
-- guided tour interpolates between the accepted frames to form a smooth tour path that can be watched like a movie
-
-&lt;br&gt; &lt;/br&gt;
-later I will show a tour animation of 1D projection
-
 ---
-# Three optimisers
+# Three random search optimisers
 
 - Creeping random search (CRS):
   - randomly sample a basis and evaluate its index value
@@ -217,10 +209,9 @@ later I will show a tour animation of 1D projection
 - Simulated annealing (SA):
   - a second chance for acceptance with probability
   `$$P= \min\left\{\exp\left[-\frac{\mid I_{\text{cur}} - I_{l} \mid}{T(l)}\right],1\right\}$$`
-  &lt;small&gt; where `\(I_{(\cdot)}\)` is the index value, `\(T(l) = \frac{T_0}{\log(l + 1)}\)`, `\(l\)` is the # of eval in the current iter. &lt;/small&gt;
-  - as `\(l\)` increases, `\(T(l)\)` decreases, and the probability for accepting inferior bases decreases
+  where `\(I_{(\cdot)}\)` is the index value, `\(T(l) = \frac{T_0}{\log(l + 1)}\)`, `\(l\)` is the # of eval in the current iter. 
+  - As `\(l\)` increases, `\(T(l)\)` decreases, and the probability for accepting inferior bases decreases
 
-  
 ???
 
 Three optimisers:  all random search algorithms
@@ -234,7 +225,8 @@ simulated annealing:
   - different design for bases that are worse than the current, namely, it gives
   
 ---
-# Three optimisers 
+# Three random search optimisers 
+
 (Cont.)
 
 - Pseudo derivative (PD): 
@@ -249,7 +241,20 @@ Pseudo derivative:
   - doesn't use derivatives, hard to operate on a basis
 
 ---
-# Data
+# Projection pursuit with guided tour
+
+&lt;img src="./img/tour-path.png" width="521" style="display: block; margin: auto;" /&gt;
+
+* projection pursuit maximises the index function to iteratively find better basis/ projection (**blue frames**)
+* guided tour chains these projections together through interpolation (**white frames**) and produces an smooth animation (**see next slide <span>&lt;i class="fas  fa-long-arrow-alt-right faa-horizontal animated " style=" color:D93F00;"&gt;&lt;/i&gt;</span>**)
+
+
+???
+
+This illustration shows how projection pursuit and guided tour works together
+
+---
+# An example
 
 
 
@@ -279,10 +284,10 @@ We expect:
 
 ???
 
-Here is the animation I promised earlier
+Here is how the animation looks like:
 
-- This is a tour animation of 1D projection, because it is 1D, the projection is a histogram
-- Among the 5 variables, X2 is a gaussian mixture and others are random normal
+- We use histogram to display 1D projections
+- Among the 5 variables, X2 is a mixture normal and others are random normal
 - We expect: X2 to have a weight close to 1 and others close to 0
 
 &lt;br&gt; &lt;/br&gt;
@@ -345,25 +350,22 @@ Here is the animation I promised earlier
 
 
 ???
-- In the ferrn package, there are 4 diagnostic plots that we created. Two for exploring the trace and two for space
-
+- There are 4 diagnostic plots that we created. Two for exploring the trace and two for space
 - There is also the botanical theme for scale the color
-
 - To produce a plot, you need to pipe the data collected from the optimisation into the one of the explore functions and make color adjustment using the botanical palette
-
 - Due to the time limit of this talk, I'm only going to show you the space plot here and later you will have the chance to see the trace plot
 
 ---
 # Reduced space plot
 
 .pull-left[
-&lt;img src="index_files/figure-html/unnamed-chunk-6-1.png" width="504" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-7-1.png" width="504" /&gt;
 ]
 
 
 ???
 
-And then we have reduced-space plot - First tell you how this plot is made and then what we can learn from it
+First tell you how this plot is made and then what we can learn from it
 
 - We have all the bases  evaluated in the optimisation - these are the coloured dots 
 - we also have random bases sampled from the space, that is used to draw the circle 
@@ -376,7 +378,6 @@ In this plot
 - CRS evaluates random points in the space so you can see dots here and there
 - PD evaluates 5 directions locally, so you can see dots scattered around an accepted basis
 - The paths are interpolating paths in the space
-- dashed lines are related to the increase-then-decrease interpolation we saw earlier and I will explain it later. 
 
 What we learn: 
 
@@ -437,11 +438,7 @@ What I'm showing you now is the same two paths but on the full space.
   - The basis space is a 5D unit sphere since the orthonormality constraint requires the square of all the entries adds up to one
   - Here is a frame in the animation that is most similar to the previous PCA view
 
-This is what I find
-  - CRS almost identical, PD misses a tail
-  - see animation again, hide behind
-
-Learn: 
+What we learn here is that
   - PCA, maximises variance, most spread, full space plot, other twisted view
 
 
@@ -450,7 +447,7 @@ Learn:
 
 .pull-right[
 
-&lt;img src="index_files/figure-html/unnamed-chunk-11-1.png" width="110%" height="120%" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-12-1.png" width="110%" height="120%" /&gt;
 
 ]
 
@@ -469,7 +466,7 @@ Learn:
 ]
 
 .pull-right[
-&lt;img src="index_files/figure-html/unnamed-chunk-14-1.png" width="100%" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-15-1.png" width="100%" /&gt;
 
 ]
 
@@ -478,93 +475,8 @@ Learn:
 ???
 
 - similarly we can generate random 2D bases and animate it with the optimisation path embed
-
 - Here I have generated the 2D basis space and captured some frames from the animation
-
 - This time, 
-
----
-## Overview
-
-.monash-gray50[
-- **Motivation and background**
-- **Visual diagnostic toolbox**
-]
-
-- **Improvement made based on the diagnostics**
-  - Interruption
-  - Polish
-
-.monash-gray50[
-- **Case study: optimising a noisy index**
-]
-
-
-???
-
-- What I have just shown, are the tools that we have, to diagnose the projection pursuit optimisers
-- Now I'm going to show you 
-  - what I find with these tools, and 
-  - how I improve the optimisation in projection pursuit guided tour
-
----
-
-# Improvement: interruption
-
-- Interruption: start the next round at the basis with the highest index value in the interpolation
-
-&lt;img src="index_files/figure-html/unnamed-chunk-15-1.png" width="936" style="display: block; margin: auto;" /&gt;
-
-
-???
-
-- We have seen the plot on the left previously, there is room for improvement here because  
-- we indeed find basis with higher index value on the interpolation path
-- But we end up with a worse target basis
-
-- What I do is to implement an interruption, which will stop the interpolation at the highest and start the next round with that basis. 
-
-- On the right is what we have after this implementation
-
----
-
-# Improvement: polish
-
-
-
-.left-col[
-&lt;img src="index_files/figure-html/unnamed-chunk-17-1.png" width="720" /&gt;
-
-]
-
-.right-col[
-&lt;img src="index_files/figure-html/unnamed-chunk-18-1.png" width="360" /&gt;
-
-]
-
-???
-
-What I'm showing here is the trace plot and final projection of a 2D problem, optimised by creeping random search
-
-- the optimiser finds the clusters, but the edges of the clusters are not clear
-- we want to improve this and hence create a polish search
-- In polish search, you sample a set of bases within a tiny neighbourhood parameter and see if there is any local breakthrough
-
-The green path and image show the index value and  projection after polishing and we can observe much clearer edges, especially along the verticle axis.
-
-
----
-## Overview
-
-.monash-gray50[
-- **Motivation and background**
-- **Visual diagnostic toolbox**
-- **Improvement made based on the diagnostics**
-]
-
-- **Case study: optimising a noisy index**
-  - Which optimiser(s) work and which didn't?
-  - What happen if there is local maximum?
 
 ---
 
@@ -583,7 +495,7 @@ New index: `$$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$`
 
 .pull-right[
 
-&lt;img src="index_files/figure-html/unnamed-chunk-19-1.png" width="504" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-16-1.png" width="504" style="display: block; margin: auto;" /&gt;
 ]
 
 ???
@@ -598,7 +510,7 @@ New index: `$$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$`
 
 .pull-left[
 
-&lt;img src="index_files/figure-html/unnamed-chunk-20-1.png" width="504" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-17-1.png" width="504" /&gt;
 
 ]
 
@@ -624,7 +536,7 @@ New index: `$$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$`
 
 ---
 
-# Takeaway
+# Summary
 
 - We have developed specialised visualisation tools to diagnose optimisation in projection pursuit guided tour
 
@@ -634,10 +546,10 @@ New index: `$$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$`
 &lt;br&gt;
 
 **For tourr developers:**
-- provides tools to test new optimisers and optimisation of new indexes
+- Provides tools to test new optimisers and optimisation of new indexes
 
 **For algorithm developers:**
-- can be seen as a work to enhance the interpretability of black-box optimsimation algorithms
+- Can be seen as a work to enhance the interpretability of black-box optimsimation algorithms
 
 ---
 
