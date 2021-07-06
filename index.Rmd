@@ -49,37 +49,9 @@ purrr::walk(.x = files, ~load(here::here(.x), env = globalenv()))
 ???
 
 - Hi everyone, 
-- my name is Sherry Zhang, a 2nd year PhD student from Monash University in Australia
+- my name is Sherry Zhang, a PhD student from Monash University in Australia
 - Today I will be talking about ...
 - This is a work supervised by 
-
----
-
-## Overview
-
-- **Motivation and background**
-  - What is a guided tour?
-  - What is the optimisation problem & optimisers used?
-  - An example of optimisation in the guided tour
-
-.monash-gray50[
-- **Visual diagnostic toolbox**
-- **Case study: optimising a noisy index**
-]
-
-
-???
-
-- let me first give you an overview of my talk today
-- I'll first introduce ... (of our study), specifically ..., and I will give 
-- I will than show the tools that we created for visually diagnose the tour optimisation
-- Then I'll give two examples of 
-  - how these plots help us to improve the optimisation in the guided tour
-- Lastly, we will go through a case study 
-  - on how these diagnostics inform us about the optimisation of a noisy index
-
-
-
 ---
 
 # Motivation
@@ -108,7 +80,7 @@ before %>% explore_trace_interp(cutoff = 100) + scale_color_continuous_botanical
 - project, motivated by ursula and Di's work, that apply guided tour to physics problems. 
 - this is what they write in the paper
 - they find that ...
-- We can see on the right that 
+- on the right is an example where
   - the optimiser could have finished at a better place but it doesn't
 
 ---
@@ -182,22 +154,22 @@ boa %>%
 
 ???
 To understand guided tour, we first need to talk about projection pursuit
-- data, basis
-- Projection basis, that characterises the direction from which the data get projected;
+- the data is a matrix ..., basis
+- Projection basis A of dimension ... characterises the direction from which the data get projected;
 - projection 
 - Index function: maps the projection to a scalar
-- Throughout this presentation until the very end, we will be using an index function called holes index
+- Throughout this presentation until the case study, we will be using an index function called holes index
   - will not show the full formula here, but it is proportional to 1 - something that looks like a standardised normal density
 - on the right I have calculated the index value for different 1D projections and we can observe that 
-  - for those projections that have high density regions, it has higher index value
-- Optimisation: max the index, subject to orthonormality constraint
+  - for those projections that have high density regions, for examples, ..., it has an higher index value
+- The optimisation we have is to: max the index function, subject to orthonormality constraint
 
 ---
 # Three random search optimisers
 
 - Creeping random search (CRS):
   - randomly sample a basis and evaluate its index value
-  - accept the basis if higher, discard if lower
+  - accept if it has a higher index value, discard if lower
 - Simulated annealing (SA):
   - a second chance to be accepted with probability
   $$P= \min\left\{\exp\left[-\frac{\mid I_{\text{cur}} - I_{l} \mid}{T(l)}\right],1\right\}$$
@@ -214,8 +186,7 @@ creeping random search:
 
 simulated annealing:
   - follows the same as CRS in sampling and accepting better bases, but
-  - it has a different design for bases that have lower index value. These bases have 
-  
+  - it has a different design for bases that have lower index value. These bases have
   - that is to say, the chance to accept a worse basis decreases as more bases are evaluated
   
 ---
@@ -226,7 +197,7 @@ simulated annealing:
 - Pseudo derivative (PD): 
   - randomly sample 5 directions close to the current and pick the most promising one
   - search along a straight line (on the sphere) for the best candidate
-  - accept the basis if higher, discard if lower
+  - same acceptance rule as CRS
   
 ???
 
@@ -361,9 +332,9 @@ Here is how the animation looks like:
 
 ???
 
-- In the ferrn package, there are 4 diagnostic plots being created. Two for exploring the trace and two for space
-- There is also botanical theme for scale the color
-- To produce a plot, you need to pipe the data collected from the optimisation into the one of the explore functions and make color adjustment using the botanical palette
+- This work leads to an R package, ferrn, where we create 4 diagnostic plots. Two for exploring the trace and two for space
+- There is also a botanical theme for scale the color
+- To produce a plot, you need to pipe the data collected from the optimisation into one of the explore functions and make color adjustment using the botanical palette
 - Due to the time limit of this talk, I will go through the two space plots here and later you will have the chance to see the trace plot
 
 ---
@@ -384,26 +355,25 @@ pca_plot
 
 ???
 
-Here is the plot made with `explore_space_pca()`.
-  - It is the same optimisation problem we have in the previous example
-    - where x2 is informative and other 4 variables are random normal
-  - First tell you how this plot is made and then what we can learn from it
+This is the first space plot
+  - as mentioned earlier, the data to project is the five variable data we see just before and the index function used is the holes index
 
-- We have all the bases evaluated in the optimisation collected in the dataset - these are the coloured dots 
-- we also have random bases sampled from the space, these are used to draw the space 
+First I'm going to tell you how this plot is made and then what we can learn from it
+- We have all the bases evaluated in the optimisation collected as a data object - these are the coloured dots 
+- we also have random bases sampled from the 5D space, these are used to draw the space 
 - we then perform PCA on these two sets of bases and take the first two to create this plot 
 
 In this plot 
 - The star is the theoretical best basis, corresponds to 1 in $x_2$ and 0 in others
-- we have two paths, CRS is coloured as brown and PD as green
-- CRS evaluates random points in the space so you can see dots here and there
+- we have two paths, CRS in brown and PD in green
+- CRS evaluates random points in the space so you can see dots everywhere
 - PD evaluates 5 directions locally, so you can see dots scattered around an accepted basis
-- The paths are interpolating paths in the space
+- The paths are interpolation between bases accepted by projection pursuit
 
 This plot tells us that ... and it helps us to ...
 
 we can also make an animated version of this plot 
-  - see clearer where each optimiser starts 
+  - here we can see clearer where each optimiser starts 
   - an additional info, learn 
 
 --
@@ -445,7 +415,7 @@ knitr::include_graphics("./img/pca.gif")
 
 .pull-right[
 
-CRS finds it faster!
+CRS finds the optimum faster!
 
 ]
 
@@ -503,9 +473,8 @@ knitr::include_graphics("./img/tour.gif")
 What I'm showing you now is the same two paths but on the full space. 
   - The full space is a 5D unit sphere since the orthonormality constraint requires the square of all the entries adds up to one
   - Here is a frame in the animation that is most similar to the previous PCA view
-
 What we learn here is that
-  - PCA, maximises variance, most spread, full space plot, other twisted view
+  - PCA, maximises variance, most spread, full space plot allows you to see the same path from different angles.
 
 
 --
@@ -574,6 +543,8 @@ gl <-  lapply(rl, grid::rasterGrob)
 wrap_plots(gl)
 ```
 
+Basis $\mathbf{A}_{p\times d}$ where $d = 2$ 
+
 ]
 
 
@@ -604,7 +575,7 @@ geo <- tourr::geodesic_path(basis1, basis2)
 
 cur_dist <- 0
 target_dist <- geo$dist
-pos <- seq(cur_dist, target_dist, 1/100)
+pos <- seq(cur_dist, target_dist, length.out = 100)
 interp <- tourr:::geodesic_info(basis1, basis2)
 
 calc_interp_kol <- function(fraction){
@@ -637,6 +608,24 @@ dt %>%
 
 ]
 
+???
+
+Now I'm presenting a case study on how visual diagnostics informs us about optmising a noisy index.
+
+- The new index we use is based on the kolmogorove test, defined here.  
+- The plot on the left shows how the index value changes when interpolating between two random bases
+- What I do is to generate two random bases in the 5D space and ask guided tour to interpolate 100 frames in between. The index value of all the frames are calculated and arranged by its natural order to make this plot.
+- what we see here is that, comparing to the holes index, the new index
+  1) has a different range, and 
+  2) also it is non-smooth
+  - These add challenges to the optimisation
+- On the right are the trace and space plot of the three optimisers I introduced earlier
+- In the trace plot, the x-axis shows the natural order of time, y axis is the index value. The dashed horizontal line on the top is the index value of the theoretical best basis. 
+  - we see here that the first optimiser, PD, fails to optimise the noisy index while CRS and SA are getting close to this theoretical best
+- From the space plot, we can also see the success of CRS and SA but they are taking different approaches to find the final basis.
+  - CRS extensively evaluates points in the space before accepting a new basis to interpolate - thus we see lots of dots here but the interpolation path is short, while
+  - SA widely accepts new basis and performs interpolation and only starts to reject towards the end - thus we see a long interpolation path but few points being evaluated
+
 --
 
 .pull-right[
@@ -650,7 +639,7 @@ dt <- dplyr::bind_rows(kol_1d_geo, kol_1d_better, kol_1d_better_random) %>%
 
 p1 <- dt %>%
   explore_trace_interp(group = method, color = method, accuracy_y = 0.02) +
-  geom_hline(yintercept = theo_best_index_val, alpha = 0.5, linetype = 2) +
+  geom_hline(yintercept = theo_best_index_val, linetype = 2, color = "black") +
   scale_color_discrete_botanical() +
   facet_wrap(vars(fct_relevel(method, c("PD", "CRS", "SA"))), scales = "free_x")
 
@@ -670,78 +659,6 @@ p2 <- pca %>%
 
 (p1 / p2)
 ```
-]
-
-???
-
-
-
-
----
-# Case study: optimising a noisy index
-
-### What happen if there is local maximum?
-
-.pull-left[
-
-```{r}
-clean_pca <- clean %>%
-  filter(method != "search_polish") %>%
-  bind_theoretical(matrix = matrix(c(0, 1, 0, 0, 0, 0), nrow = 6),
-                   index = tourr::norm_kol(nrow(boa6)),
-                   raw_data = boa6) %>%
-  bind_theoretical(matrix = matrix(c(0, 0, 1, 0, 0, 0), nrow = 6),
-                   index = tourr::norm_kol(nrow(boa6)),
-                   raw_data = boa6) %>%
-  mutate(seed_sim = paste0(seed, sim),
-         alpha = ifelse(str_detect(sim, "tuned"), 0.7, 0.5),
-         optimiser = ifelse(str_detect(sim, "random"), "SA", "CRS"),
-         var_found = as.factor(ifelse(var_found == "V7", "global", "local")),
-         var_found = fct_relevel(var_found, "global", after = 1)) %>%
-  compute_pca(group = seed_sim) %>%
-  pluck("aug")
-
-global_max <- clean_pca %>%
-  filter(info == "theoretical") %>%
-  filter(index_val == max(index_val)) %>%
-  select(-alpha, -optimiser)
-
-local_max <- clean_pca %>%
-  filter(info == "theoretical") %>%
-  filter(index_val == min(index_val)) %>%
-  select(-alpha, -optimiser)
-
-clean_pca %>% drop_na() %>% rename(`search size` = alpha) %>%
-  explore_space_pca(pca = FALSE, group = seed_sim, color = var_found,
-                    start_size = 1, start_alpha = 0.5, end_size = 2,
-                    interp_size = 0.5) +
-  add_theo(dt = global_max, theo_size = 20) +
-  add_theo(dt = local_max, theo_label = "x", theo_size = 10) +
-  scale_color_discrete_botanical() +
-  facet_grid(`search size` ~ optimiser, labeller = label_both)
-
-```
-
-]
-
---
-
-.pull-right[
-- [CRS & 0.5] is fast and simple
-]
-
-.pull-right[
-- with a larger search size of 0.7, more find the global max
-<br>
-]
-
-.pull-right[
-- small search size: 0.5 hinders SA to find the global max
-]
-
-.pull-right[
-- [SA & 0.7] finds the global max in 16 out of 20 simulations and gets closer
-
 ]
 
 ---
