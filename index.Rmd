@@ -33,7 +33,11 @@ output:
       ratio: '16:9'
 ---
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, cache = TRUE, fig.retina = 2)
+knitr::opts_chunk$set(echo = FALSE, 
+                      message = FALSE, 
+                      cache = TRUE, 
+                      fig.retina = 2,
+                      fig.path = "figures/")
 library(ferrn)
 library(tidyverse)
 library(icon)
@@ -67,7 +71,7 @@ purrr::walk(.x = files, ~load(here::here(.x), env = globalenv()))
 
 .pull-right[
 
-```{r fig.height=5}
+```{r motivation, fig.height=5}
 before %>% explore_trace_interp(cutoff = 100) + scale_color_continuous_botanical()
 ```
 
@@ -128,7 +132,7 @@ density $\uparrow$, index value $\uparrow$
 
 .pull-right[
 
-```{r echo = FALSE, fig.width=7.5}
+```{r calc-index-val, echo = FALSE, fig.width=7.5}
 index_val <- boa %>% 
   dplyr::select(-x4) %>% 
   mutate(across(x1:x10, ~exp(-1/2 *.x ^2))) %>%
@@ -341,7 +345,7 @@ Here is how the animation looks like:
 # `explore_space_pca()`
 
 .pull-left[
-```{r}
+```{r pca-plot}
 pca_plot <- bind_rows(holes_1d_geo, holes_1d_better) %>%
   bind_theoretical(matrix(c(0, 1, 0, 0, 0), nrow = 5),
                    index = tourr::holes(), raw_data = boa5)  %>%
@@ -482,7 +486,7 @@ What we learn here is that
 
 .pull-right[
 
-```{r out.width="110%", out.height="120%"}
+```{r 1d-sphere-frame, out.width="110%", out.height="120%"}
 p1 <- knitr::include_graphics("./img/tour/tour-frame078.png") %>% png::readPNG() %>% grid::rasterGrob() %>% wrap_plots()
 p1 / pca_plot
 ```
@@ -535,7 +539,7 @@ knitr::include_graphics("./img/torus.gif")
 ]
 
 .pull-right[
-```{r out.width = "100%"}
+```{r 2D-torus-frames, out.width = "100%"}
 frames <- c("001", "017", "064", "068", "075", "100")
 ani <- paste0("./img/", "torus/", "torus", frames, ".png")
 rl <- lapply(ani, png::readPNG)
@@ -566,7 +570,7 @@ New index: $$I(n) = \max \left[F_{Y}(n) - F_{\mathcal{N}}(n)\right]$$
 
 <small> where $F_{.}(n)$ is the ECDF function </small>
 
-```{r fig.height = 4}
+```{r noisy-index-compare, fig.height = 4}
 set.seed(123456)
 d <- 1
 basis1 <- tourr::basis_random(ncol(boa5), d)
@@ -630,7 +634,7 @@ Now I'm presenting a case study on how visual diagnostics informs us about optmi
 
 .pull-right[
 
-```{r fig.align="center", message=FALSE, warning = FALSE}
+```{r noisy-performance, fig.align="center", message=FALSE, warning = FALSE}
 index <- tourr::norm_kol(nrow(boa5))
 theo_best_index_val <- index(as.matrix(boa5) %*% matrix(c(0, 1, 0, 0, 0), nrow = 5, ncol = 1))
 
