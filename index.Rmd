@@ -157,7 +157,7 @@ boa %>%
 
 
 ???
-Now I will provide some background information on
+Now I will introduce some background information on
   - what is a guided tour 
   - what is the optimisation problem and 
   - what are the optimisers that we have
@@ -277,7 +277,7 @@ We expect:
 Here is how the animation looks like:
 
 - We use histogram to display 1D projection
-- In this example, there are 5 variables, X2 is a mixture normal and others are random normal
+- The data include 5 variables, X2 is a mixture normal and others are random normal
 - We expect: X2 to have a weight close to 1 and others close to 0
 
 <br> </br>
@@ -285,6 +285,7 @@ Here is how the animation looks like:
 - In this simple example, the optimiser works well to find the optimum
 - but this is not the case for all the problems, as we see in the literature
 - so we need some visual tools to help us diagnose where things go wrong
+- A side note here: this will also be the data that we used in later examples and we are always aiming to find $x_2$ in this dataset
 
 ---
 # Ferrn package
@@ -369,14 +370,14 @@ This is the first space plot
 First I'm going to tell you how this plot is made and then what we can learn from it
 - We have all the bases evaluated in the optimisation - these are the coloured dots 
 - we also have random bases sampled from the 5D space, these are used to draw the space 
-- we then perform PCA on these two sets of bases and take the first two to create this plot 
+- we then perform PCA on these two sets of bases and take the first two PCs to create this plot 
 
 In this plot 
 - The star is the theoretical best basis, corresponds to 1 in $x_2$ and 0 in others
 - we have two paths, CRS in brown and PD in green
 - CRS evaluates random points in the space so you can see dots everywhere
 - PD evaluates 5 directions locally, so you can see dots scattered around an accepted basis
-- The paths are interpolation between bases accepted by projection pursuit
+- The paths here are the interpolation between bases accepted by projection pursuit
 
 This plot tells us that ... and it helps us to ...
 
@@ -478,7 +479,7 @@ knitr::include_graphics("./img/tour.gif")
 
 ???
 
-What I'm showing you now is the same two paths but on the full space. 
+What I'm showing you now is the same two paths but on the full space. Let's watch this animation together: 
   - The full space is a 5D unit sphere since the orthonormality constraint requires the square of all the entries adds up to one
   - Here is a frame in the animation that is most similar to the previous PCA view
 
@@ -621,18 +622,18 @@ dt %>%
 
 Now I'm presenting a case study on how visual diagnostics informs us about optmising a noisy index.
 
-- The new index we use is based on the kolmogorove test, defined here.  
+- The noisy index we use is based on the kolmogorove test, defined here.  
 - The plot on the left shows how the index value changes when interpolating between two random bases
 - What I do is to generate two random bases in the 5D space and ask guided tour to interpolate 100 frames in between. The index value of all the frames are calculated and arranged by its natural order to make this plot.
 - what we see here is that, comparing to the holes index, the new index
   1) has a different range, and 
   2) also it is non-smooth
   - These add challenges to the optimisation
-- On the right are the trace and space plot of the three optimisers I introduced earlier
+- On the right are the trace and space plot of the three optimisers I introduced earlier on the 5 variable dataset
 - In the trace plot, the x-axis shows the natural order of time, y axis is the index value. The dashed horizontal line on the top is the index value of the theoretical best basis. 
   - we see here that the first optimiser, PD, fails to optimise the noisy index while CRS and SA are getting close to this theoretical best
 - From the space plot, we can also see the success of CRS and SA but they are taking different approaches to find the final basis.
-  - CRS extensively evaluates points in the space before accepting a new basis to interpolate - thus we see lots of dots here but the interpolation path is short, while
+  - CRS extensively evaluates points in the space before accepting a new basis to interpolate - thus we see lots of dots in the space but the interpolation path is short, while
   - SA widely accepts new basis and performs interpolation and only starts to reject towards the end - thus we see a long interpolation path but few points being evaluated
 
 --
