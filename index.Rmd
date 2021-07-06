@@ -62,14 +62,14 @@ purrr::walk(.x = files, ~load(here::here(.x), env = globalenv()))
 
 > The work also reveals inadequacies in the tour optimization algorithm, that may benefit from newly developed techniques and software tools. (Laa & Cook, 2020)
 
-.pull-left[
+.left-col[
 - For simulated data, the optimisers
   - often failed at finding the expected maxima, or 
   - would only get close but not reach the maxima
 - For noisy index functions it failed completely
 ]
 
-.pull-right[
+.right-col[
 
 ```{r motivation, fig.height=5}
 before %>% explore_trace_interp(cutoff = 100) + scale_color_continuous_botanical()
@@ -85,7 +85,7 @@ before %>% explore_trace_interp(cutoff = 100) + scale_color_continuous_botanical
 - this is what they write in the paper
 - they find that ...
 - on the right is an example where
-  - the optimiser could have finished at a better place but it doesn't
+  - the optimiser could have finished at a better position but it doesn't
 
 ---
 
@@ -157,14 +157,19 @@ boa %>%
 
 
 ???
+Now I will provide some background information on
+  - what is a guided tour 
+  - what is the optimisation problem and 
+  - what are the optimisers that we have
+
 To understand guided tour, we first need to talk about projection pursuit
-- the data is a matrix ..., basis
-- Projection basis A of dimension ... characterises the direction from which the data get projected;
+- we denote the data as a matrix of dimension ....
+- Projection basis A, of dimension ..., characterises the direction from which the data get projected;
 - projection 
-- Index function: maps the projection to a scalar
-- Throughout this presentation until the case study, we will be using an index function called holes index
+- Index function: maps the projection from an ... dimension space to a scalar
+- Throughout this presentation until the case study in the end, we will be using an index function called holes index
   - will not show the full formula here, but it is proportional to 1 - something that looks like a standardised normal density
-- on the right I have calculated the index value for different 1D projections and we can observe that 
+- on the right I have calculated the index value of the holes index for different 1D projections and we can observe that 
   - for those projections that have high density regions, for examples, ..., it has an higher index value
 - The optimisation we have is to: max the index function, subject to orthonormality constraint
 
@@ -172,26 +177,26 @@ To understand guided tour, we first need to talk about projection pursuit
 # Three random search optimisers
 
 - Creeping random search (CRS):
-  - randomly sample a basis and evaluate its index value
-  - accept if it has a higher index value, discard if lower
+  - randomly samples a basis and evaluates its index value
+  - accepted if it has a higher index value, discarded if lower
 - Simulated annealing (SA):
   - a second chance to be accepted with probability
   $$P= \min\left\{\exp\left[-\frac{\mid I_{\text{cur}} - I_{l} \mid}{T(l)}\right],1\right\}$$
-  where $I_{(\cdot)}$ is the index value, $T(l) = \frac{T_0}{\log(l + 1)}$, $l$ is the # of eval in the current iter. 
-  - As $l$ increases, $T(l)$ decreases, and the probability for accepting inferior bases decreases
+  where $I_{(\cdot)}$ is the index value, $T(l) = \frac{T_0}{\log(l + 1)}$, $l$ is the # of eval (in the current iter). 
+  - As $l$ increases, $T(l)$ decreases, and the probability for accepting an inferior basis decreases
 
 ???
 
 To solve this optimisation problem, we have three optimisers. All of which are random search algorithms
 
 creeping random search: 
-  - sample, satisfy orthonormality, evaluate
-  - candidate, accept
+  - that satisfies the orthonormality constraint 
+  - the basis, accept
 
 simulated annealing:
   - follows the same as CRS in sampling and accepting better bases, but
   - it has a different design for bases that have lower index value. These bases have
-  - that is to say, the chance to accept a worse basis decreases as more bases are evaluated
+  - that is to say, it is less likely to accept a worse basis after more bases have been evaluated
   
 ---
 # Three random search optimisers 
@@ -199,7 +204,7 @@ simulated annealing:
 (Cont.)
 
 - Pseudo derivative (PD): 
-  - randomly sample 5 directions close to the current and pick the most promising one
+  - randomly sample 5 directions close to the current and pick the most promising direction
   - search along a straight line (on the sphere) for the best candidate
   - same acceptance rule as CRS
   
@@ -207,8 +212,8 @@ simulated annealing:
 
 Pseudo derivative:
   - flavour, gradient a'scent, as it first find a promising direction and then compute a step size
-  - we don't use derivatives here, hard to operate on a matrix basis. Instead, 
-
+  - we don't use derivative here, hard to operate on a matrix. Instead, 
+  - PD then uses the same acceptance rule as CRS
 ---
 # Projection pursuit with guided tour
 
@@ -271,14 +276,14 @@ We expect:
 
 Here is how the animation looks like:
 
-- We use histogram to display 1D projections
+- We use histogram to display 1D projection
 - In this example, there are 5 variables, X2 is a mixture normal and others are random normal
 - We expect: X2 to have a weight close to 1 and others close to 0
 
 <br> </br>
 
 - In this simple example, the optimiser works well to find the optimum
-- but this is not the case for all the problem, as we see in the literature
+- but this is not the case for all the problems, as we see in the literature
 - so we need some visual tools to help us diagnose where things go wrong
 
 ---
@@ -360,10 +365,9 @@ pca_plot
 ???
 
 This is the first space plot
-  - as mentioned earlier, the data to project is the five variable data we see just before and the index function used is the holes index
 
 First I'm going to tell you how this plot is made and then what we can learn from it
-- We have all the bases evaluated in the optimisation collected as a data object - these are the coloured dots 
+- We have all the bases evaluated in the optimisation - these are the coloured dots 
 - we also have random bases sampled from the 5D space, these are used to draw the space 
 - we then perform PCA on these two sets of bases and take the first two to create this plot 
 
@@ -477,6 +481,7 @@ knitr::include_graphics("./img/tour.gif")
 What I'm showing you now is the same two paths but on the full space. 
   - The full space is a 5D unit sphere since the orthonormality constraint requires the square of all the entries adds up to one
   - Here is a frame in the animation that is most similar to the previous PCA view
+
 What we learn here is that
   - PCA, maximises variance, most spread, full space plot allows you to see the same path from different angles.
 
@@ -555,7 +560,7 @@ Basis $\mathbf{A}_{p\times d}$ where $d = 2$
 
 ???
 
-- similarly we can generate random 2D bases and animate it with the optimisation path embeded
+- similarly we can generate random 2D bases and animate it with 2D path embeded
 - Here I have generated the 2D basis space and captured some frames from the animation
 - This time, 
 
